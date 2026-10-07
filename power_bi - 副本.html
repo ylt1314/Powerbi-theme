@@ -1,0 +1,2849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Power BI 背景设计器 - Background Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans SC"', 'Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Noto Sans SC', 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    .accordion-content {
+      transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease-in-out;
+    }
+
+    input[type=range] {
+      accent-color: #10b981;
+    }
+
+    .toast-animate {
+      animation: toastIn 0.25s ease-out forwards;
+    }
+    @keyframes toastIn {
+      from { transform: translateY(12px) scale(0.96); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    
+    /* Layout arrangement wireframe icons */
+    .wireframe-box {
+      background-color: #94a3b8;
+      border-radius: 2px;
+      transition: background-color 0.15s ease;
+    }
+    .layout-card-btn.active .wireframe-box {
+      background-color: #10b981;
+    }
+
+    /* 3D and perspective simulation styles */
+    .perspective-grid {
+      transform-style: preserve-3d;
+      perspective: 900px;
+    }
+    .card-3d-lift {
+      transform: translateZ(12px) rotateX(2deg);
+      box-shadow: 0 16px 28px -6px rgba(0, 0, 0, 0.25), 0 8px 10px -4px rgba(0, 0, 0, 0.15);
+    }
+    .card-neumorphic {
+      box-shadow: 6px 6px 14px rgba(0,0,0,0.18), -6px -6px 14px rgba(255,255,255,0.06);
+    }
+    .card-stepped-1 {
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    }
+    .card-stepped-2 {
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.15), 0 4px 6px -2px rgba(0,0,0,0.08);
+      transform: translateY(-2px);
+    }
+    .card-stepped-3 {
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.25), 0 10px 10px -5px rgba(0,0,0,0.1);
+      transform: translateY(-4px);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 lg:p-7">
+
+  <div class="w-full max-w-[1400px] bg-white rounded-2xl shadow-2xl border border-slate-300/80 overflow-hidden flex flex-col h-[95vh] max-h-[1140px]">
+    
+    <!-- Top System Window Bar -->
+    <div class="bg-[#1e232a] text-slate-300 px-4 py-2.5 flex items-center justify-between text-xs select-none border-b border-slate-700/60 flex-shrink-0">
+      <div class="flex items-center space-x-2 font-mono">
+        <span class="text-emerald-400 font-bold">&lt;/&gt;</span>
+        <span class="text-slate-200 font-medium">Power BI 背景设计器 (开发者工作站 / Developer VM)</span>
+      </div>
+      <div class="flex items-center space-x-3 text-slate-400">
+        <button id="minimizeWindowBtn" class="hover:text-white transition-colors" title="最小化">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+        </button>
+        <button id="closeWindowBtn" class="hover:text-red-400 transition-colors" title="关闭">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Navigation Header -->
+    <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between flex-shrink-0">
+      <div class="flex items-center space-x-3.5">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/20">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold text-slate-900 leading-tight">背景设计工作台 (Background Studio)</h1>
+          <p id="headerSubtitle" class="text-xs text-slate-500 font-medium">Power BI · 炭黑深色 · 经典网格 Filter + 2+1</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2.5">
+        <button id="resetBtn" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold flex items-center space-x-1.5 transition-all shadow-xs">
+          <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          <span>重置默认</span>
+        </button>
+        <button id="toggleMockPreviewBtn" class="px-3.5 py-1.5 rounded-lg border border-slate-200 text-slate-700 hover:text-slate-900 hover:bg-slate-50 text-xs font-semibold flex items-center space-x-1.5 transition-all shadow-xs">
+          <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          <span id="previewButtonLabel">模拟真实图表</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- App Body: Left (Preview & Specs) and Right (Configuration Panels) -->
+    <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden bg-slate-50/70">
+      
+      <!-- ================= LEFT COLUMN: LIVE CANVAS PREVIEW & SPECS ================= -->
+      <section class="lg:col-span-5 p-4 md:p-5 flex flex-col justify-between overflow-y-auto border-r border-slate-200 space-y-4">
+        <div class="space-y-3.5">
+          <!-- Status & Resolution Tag -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <span class="relative flex h-2.5 w-2.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <span class="text-xs font-bold tracking-wider text-emerald-600 uppercase">实时预览 (LIVE PREVIEW)</span>
+            </div>
+            <span id="resolutionBadge" class="text-xs font-mono font-medium text-slate-500 tracking-tight bg-white px-2 py-0.5 rounded border border-slate-200 shadow-xs">1600 × 900</span>
+          </div>
+
+          <!-- Canvas Viewport Frame (Dynamic aspect ratio based on W and H) -->
+          <div class="relative w-full rounded-xl p-2.5 bg-[#252830] shadow-inner border border-slate-700/50 flex items-center justify-center">
+            <div id="canvasViewport" class="w-full rounded-lg overflow-hidden relative shadow-lg transition-all duration-300 select-none flex" style="aspect-ratio: 16 / 9; background-color: #18191C;">
+              
+              <!-- Simulated Sidebar -->
+              <div id="previewSidebar" class="w-[18%] h-full bg-[#141517] border-r border-[#383A40] flex flex-col py-2 px-1.5 transition-all flex-shrink-0 relative z-10">
+                <!-- Sidebar Brand / Logo slot -->
+                <div class="flex items-center space-x-1.5 px-1 py-1 mb-2">
+                  <div id="sidebarLogoHolder" class="w-4 h-4 rounded bg-amber-500 flex items-center justify-center text-slate-900 text-[8px] font-black overflow-hidden flex-shrink-0">
+                    <span id="sidebarLogoText">P</span>
+                    <img id="sidebarLogoImg" class="w-full h-full object-contain hidden" alt="Logo" />
+                  </div>
+                  <div class="h-2 w-12 bg-white/20 rounded-xs"></div>
+                </div>
+
+                <!-- Nav list items -->
+                <div class="space-y-1.5 flex-1">
+                  <div id="sidebarActiveNav" class="h-3 w-full bg-white/10 border-l-2 border-amber-500 rounded-r flex items-center px-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1"></div>
+                    <div class="h-1.5 w-7 bg-white/60 rounded"></div>
+                  </div>
+                  <div class="h-3 w-full rounded flex items-center px-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-white/20 mr-1"></div>
+                    <div class="h-1.5 w-8 bg-white/15 rounded"></div>
+                  </div>
+                  <div class="h-3 w-full rounded flex items-center px-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-white/20 mr-1"></div>
+                    <div class="h-1.5 w-6 bg-white/15 rounded"></div>
+                  </div>
+                  <div class="h-3 w-full rounded flex items-center px-1">
+                    <div class="w-1.5 h-1.5 rounded-full bg-white/20 mr-1"></div>
+                    <div class="h-1.5 w-7 bg-white/15 rounded"></div>
+                  </div>
+                </div>
+
+                <div class="pt-1 border-t border-white/10 flex items-center justify-center">
+                  <div class="h-1.5 w-8 bg-white/15 rounded"></div>
+                </div>
+              </div>
+
+              <!-- Main Visual Workspace -->
+              <div id="previewMainWorkspace" class="flex-1 h-full flex flex-col p-2 overflow-hidden relative">
+                <!-- Header / Chrome Bar -->
+                <div id="previewChromeHeader" class="w-full flex items-center justify-between pb-1.5 mb-1.5 border-b border-[#383A40]">
+                  <div class="flex items-center space-x-2">
+                    <div id="headerTitlePlaceholder" class="h-2.5 w-20 bg-white/30 rounded-xs"></div>
+                    <div id="headerTabsContainer" class="flex items-center space-x-1 pl-1">
+                      <div class="h-2 w-8 border-b-2 border-amber-500 bg-amber-500/20 rounded-t-xs"></div>
+                      <div class="h-2 w-8 bg-white/15 rounded-t-xs"></div>
+                      <div class="h-2 w-8 bg-white/15 rounded-t-xs"></div>
+                      <div class="h-2 w-8 bg-white/15 rounded-t-xs"></div>
+                      <div class="h-2 w-8 bg-white/15 rounded-t-xs"></div>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-1">
+                    <div class="w-2.5 h-2.5 rounded bg-white/15"></div>
+                    <div class="w-2.5 h-2.5 rounded bg-white/15"></div>
+                  </div>
+                </div>
+
+                <!-- KPI Cards Row -->
+                <div id="previewKpiRow" class="grid grid-cols-4 gap-1.5 mb-1.5 flex-shrink-0">
+                  <!-- KPI Cards injected dynamically -->
+                </div>
+
+                <!-- Main Layout Visual Grid Area -->
+                <div id="previewVisualGrid" class="flex-1 min-h-0 relative">
+                  <!-- Dynamic layout cards populated via JS based on selected arrangement -->
+                </div>
+
+                <!-- Footer Strip -->
+                <div id="previewFooter" class="h-2 mt-1 w-full bg-white/10 rounded-xs hidden items-center px-1">
+                  <div class="h-1 w-20 bg-white/20 rounded"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Preview Mode Badge Indicator -->
+            <div id="mockDataIndicator" class="absolute top-4 right-4 bg-emerald-600/95 text-white text-[10px] font-semibold px-2.5 py-0.5 rounded shadow-sm opacity-0 pointer-events-none transition-opacity flex items-center space-x-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span>
+              <span>模拟数据展示中</span>
+            </div>
+          </div>
+
+          <!-- Specification Summary Table -->
+          <div class="pt-1">
+            <div class="flex items-center justify-between mb-1.5">
+              <h3 id="summaryTitle" class="text-xl font-extrabold text-slate-800 tracking-tight">Filter + 2+1</h3>
+              <span id="summaryCategoryBadge" class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-200 text-slate-700">经典栅格</span>
+            </div>
+            
+            <div class="divide-y divide-slate-200/90 text-xs bg-white rounded-xl p-3 border border-slate-200/80 shadow-xs">
+              <div class="py-1.5 flex justify-between items-center">
+                <span class="text-slate-500 font-medium">画布规格 (Canvas)</span>
+                <span id="summaryCanvas" class="font-mono font-medium text-slate-800">1600 × 900</span>
+              </div>
+              <div class="py-1.5 flex justify-between items-center">
+                <span class="text-slate-500 font-medium">色彩预设 (Preset)</span>
+                <span id="summaryPreset" class="font-semibold text-slate-800">炭黑深色 (Charcoal)</span>
+              </div>
+              <div class="py-1.5 flex justify-between items-center">
+                <span class="text-slate-500 font-medium">KPI 指标卡</span>
+                <span id="summaryKpi" class="text-slate-700">4 张指标卡</span>
+              </div>
+              <div class="py-1.5 flex justify-between items-center">
+                <span class="text-slate-500 font-medium">侧边导航 (Sidebar)</span>
+                <span id="summarySidebar" class="text-slate-700">完整侧边栏</span>
+              </div>
+              <div class="py-1.5 flex justify-between items-center">
+                <span class="text-slate-500 font-medium">顶部标牌 (Chrome)</span>
+                <span id="summaryChrome" class="text-slate-700">下划线高亮, 5 项导航</span>
+              </div>
+              <div class="py-1.5 flex justify-between items-center">
+                <span class="text-slate-500 font-medium">底部状态栏 (Footer)</span>
+                <span id="summaryFooter" class="text-slate-400 font-mono">未启用 (—)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tip Box -->
+        <div class="bg-emerald-50/90 border border-emerald-200/70 rounded-xl p-3 text-xs text-emerald-900 mt-2">
+          <p class="font-bold text-emerald-800 mb-0.5 flex items-center space-x-1.5">
+            <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>专业设计提示</span>
+          </p>
+          <p class="text-emerald-700 leading-relaxed text-[11px]">
+            左侧画布实时同步所有参数。设计完成后，使用右下方<strong class="text-emerald-800 font-semibold">【生成并导出背景】</strong>即可一键下载 1x/2x 高清 PNG 底图、Figma 矢量 SVG 或官方 Power BI Theme 主题 JSON。
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= RIGHT COLUMN: ACCORDION CONTROLS ================= -->
+      <section class="lg:col-span-7 flex flex-col justify-between overflow-hidden bg-white">
+        
+        <div class="overflow-y-auto p-4 md:p-5 space-y-3 flex-1 pr-2.5">
+          
+          <!-- ACCORDION 1: Grid Layout (Canvas Size + Multi-Category Arrangements) -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+            <button class="accordion-toggle w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-50/60 transition-colors" data-target="panel-grid">
+              <div class="flex items-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-slate-800">网格与版式架构 (Grid Layout)</h4>
+                  <p id="accSummaryGrid" class="text-xs text-slate-400">1600 × 900 · Filter + 2+1</p>
+                </div>
+              </div>
+              <svg class="accordion-chevron w-4 h-4 text-slate-400 rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            
+            <div id="panel-grid" class="accordion-content border-t border-slate-100 p-4 space-y-4 bg-white">
+              <!-- CANVAS SIZE SECTION -->
+              <div>
+                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">画布分辨率与尺寸 (Canvas Size)</span>
+                
+                <div class="space-y-2.5">
+                  <div class="flex items-center space-x-3">
+                    <label class="text-xs font-medium text-slate-600 w-16 flex-shrink-0">预设规格</label>
+                    <div class="flex-1 relative">
+                      <select id="canvasPresetSelect" class="w-full bg-[#f8fafc] border border-slate-200 rounded-lg px-3 py-2 text-xs font-medium text-slate-700 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="1600x900" selected>1600 × 900 — 宽屏标准 (Wide 16:9)</option>
+                        <option value="1920x1080">1920 × 1080 — 全高清 (Full HD 1080p)</option>
+                        <option value="3840x2160">3840 × 2160 — 超高清大屏 (4K Ultra HD)</option>
+                        <option value="1280x720">1280 × 720 — 标清 720p</option>
+                        <option value="1366x768">1366 × 768 — 笔记本标准 (Laptop)</option>
+                        <option value="1440x900">1440 × 900 — 黄金宽屏 (16:10)</option>
+                        <option value="1080x1920">1080 × 1920 — 移动端/大屏竖屏 (Portrait)</option>
+                        <option value="1080x1080">1080 × 1080 — 方形画布 (Square 1:1)</option>
+                        <option value="custom">自定义分辨率 (Custom Dimensions)</option>
+                      </select>
+                      <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-500">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Custom Width & Height Inputs with Aspect Ratio Lock -->
+                  <div class="grid grid-cols-12 gap-2.5 items-center">
+                    <div class="col-span-5 flex items-center space-x-2 bg-[#f8fafc] border border-slate-200 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-emerald-500">
+                      <span class="text-xs font-bold text-slate-400">宽 (W)</span>
+                      <input type="number" id="inputCustomWidth" value="1600" min="400" max="4096" class="w-full bg-transparent text-xs font-mono font-medium text-slate-800 focus:outline-none">
+                      <span class="text-[10px] text-slate-400">px</span>
+                    </div>
+                    
+                    <div class="col-span-2 flex justify-center">
+                      <button id="aspectRatioLockBtn" type="button" class="p-1.5 rounded-lg border border-slate-200 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-colors" title="锁定 16:9 比例">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                      </button>
+                    </div>
+
+                    <div class="col-span-5 flex items-center space-x-2 bg-[#f8fafc] border border-slate-200 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-emerald-500">
+                      <span class="text-xs font-bold text-slate-400">高 (H)</span>
+                      <input type="number" id="inputCustomHeight" value="900" min="300" max="4096" class="w-full bg-transparent text-xs font-mono font-medium text-slate-800 focus:outline-none">
+                      <span class="text-[10px] text-slate-400">px</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- LAYOUT CATEGORY TABS -->
+              <div class="pt-2 border-t border-slate-100">
+                <div class="flex items-center justify-between mb-2.5">
+                  <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">版式类别与布局库 (Arrangements)</span>
+                  <div class="flex space-x-1 bg-slate-100 p-0.5 rounded-lg text-xs">
+                    <button type="button" class="layout-tab-btn active px-2.5 py-1 rounded-md font-semibold text-slate-800 bg-white shadow-xs transition" data-tab="classic">经典栅格 (18)</button>
+                    <button type="button" class="layout-tab-btn px-2.5 py-1 rounded-md font-medium text-slate-500 hover:text-slate-800 transition" data-tab="line">线条极简 (4)</button>
+                    <button type="button" class="layout-tab-btn px-2.5 py-1 rounded-md font-medium text-slate-500 hover:text-slate-800 transition" data-tab="dimensional">3D/空间透视 (4)</button>
+                    <button type="button" class="layout-tab-btn px-2.5 py-1 rounded-md font-medium text-slate-500 hover:text-slate-800 transition" data-tab="templates">商务潮流定制 (5)</button>
+                  </div>
+                </div>
+
+                <!-- TAB 1: 经典栅格 (18 款) -->
+                <div id="tab-classic" class="layout-tab-content grid grid-cols-3 sm:grid-cols-6 gap-2">
+                  <!-- 1. Single -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="single" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex items-center justify-center"><div class="w-full h-full wireframe-box"></div></div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">单卡片 (Single)</span>
+                  </button>
+
+                  <!-- 2. 2 Rows -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2rows" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col justify-between gap-1">
+                      <div class="w-full h-3 wireframe-box"></div><div class="w-full h-3 wireframe-box"></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">双行分栏</span>
+                  </button>
+
+                  <!-- 3. 2 Cols -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2cols" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex justify-between gap-1">
+                      <div class="w-1/2 h-full wireframe-box"></div><div class="w-1/2 h-full wireframe-box"></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">双列分屏</span>
+                  </button>
+
+                  <!-- 4. 1 + 2 -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="1+2" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col justify-between gap-1">
+                      <div class="w-full h-3.5 wireframe-box"></div>
+                      <div class="flex gap-1 h-3.5"><div class="w-1/2 h-full wireframe-box"></div><div class="w-1/2 h-full wireframe-box"></div></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">1 + 2 版式</span>
+                  </button>
+
+                  <!-- 5. 2 + 1 -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2+1" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col justify-between gap-1">
+                      <div class="flex gap-1 h-3.5"><div class="w-1/2 h-full wireframe-box"></div><div class="w-1/2 h-full wireframe-box"></div></div>
+                      <div class="w-full h-3.5 wireframe-box"></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">2 + 1 版式</span>
+                  </button>
+
+                  <!-- 6. Left Main -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="left-main" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex gap-1">
+                      <div class="w-3/5 h-full wireframe-box"></div>
+                      <div class="w-2/5 h-full flex flex-col gap-1"><div class="w-full h-1/2 wireframe-box"></div><div class="w-full h-1/2 wireframe-box"></div></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">左侧主看板</span>
+                  </button>
+
+                  <!-- 7. Right Main -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="right-main" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex gap-1">
+                      <div class="w-2/5 h-full flex flex-col gap-1"><div class="w-full h-1/2 wireframe-box"></div><div class="w-full h-1/2 wireframe-box"></div></div>
+                      <div class="w-3/5 h-full wireframe-box"></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">右侧主看板</span>
+                  </button>
+
+                  <!-- 8. 1 + 3 -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="1+3" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col justify-between gap-1">
+                      <div class="w-full h-3.5 wireframe-box"></div>
+                      <div class="flex gap-1 h-3.5"><div class="w-1/3 h-full wireframe-box"></div><div class="w-1/3 h-full wireframe-box"></div><div class="w-1/3 h-full wireframe-box"></div></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">1 + 3 通栏</span>
+                  </button>
+
+                  <!-- 9. 2 × 2 -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2x2" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 grid grid-cols-2 grid-rows-2 gap-1">
+                      <div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">2 × 2 四宫格</span>
+                  </button>
+
+                  <!-- 10. 2×2 + Bar -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2x2+bar" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col gap-1">
+                      <div class="grid grid-cols-2 gap-1 h-5"><div class="wireframe-box"></div><div class="wireframe-box"></div></div>
+                      <div class="w-full h-2 wireframe-box"></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">2×2 + 底栏</span>
+                  </button>
+
+                  <!-- 11. 2 × 3 -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2x3" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 grid grid-cols-3 grid-rows-2 gap-0.5">
+                      <div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div>
+                      <div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">2 × 3 六卡片</span>
+                  </button>
+
+                  <!-- 12. 3 × 2 -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="3x2" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 grid grid-cols-2 grid-rows-3 gap-0.5">
+                      <div class="wireframe-box"></div><div class="wireframe-box"></div>
+                      <div class="wireframe-box"></div><div class="wireframe-box"></div>
+                      <div class="wireframe-box"></div><div class="wireframe-box"></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">3 × 2 矩阵</span>
+                  </button>
+
+                  <!-- 13. 3 × 3 -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="3x3" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-0.5 mb-1 grid grid-cols-3 grid-rows-3 gap-0.5">
+                      <div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div>
+                      <div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div>
+                      <div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">3 × 3 九宫格</span>
+                  </button>
+
+                  <!-- 14. Side + 3 -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="side+3" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex gap-1">
+                      <div class="w-1/3 h-full wireframe-box"></div>
+                      <div class="w-2/3 h-full flex flex-col justify-between gap-0.5"><div class="wireframe-box h-2"></div><div class="wireframe-box h-2"></div><div class="wireframe-box h-2"></div></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">侧栏索引 + 3</span>
+                  </button>
+
+                  <!-- 15. Dashboard -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="dashboard" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col gap-0.5">
+                      <div class="grid grid-cols-3 gap-0.5 h-2"><div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div></div>
+                      <div class="grid grid-cols-2 gap-0.5 h-3"><div class="wireframe-box"></div><div class="wireframe-box"></div></div>
+                      <div class="grid grid-cols-2 gap-0.5 h-2.5"><div class="wireframe-box"></div><div class="wireframe-box"></div></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">综合仪表盘</span>
+                  </button>
+
+                  <!-- 16. Drillthrough -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="drillthrough" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex gap-1">
+                      <div class="w-2/5 h-full wireframe-box"></div>
+                      <div class="w-3/5 h-full flex flex-col gap-1"><div class="w-full h-3 wireframe-box"></div><div class="w-full h-4 wireframe-box"></div></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">钻取分析视图</span>
+                  </button>
+
+                  <!-- 17. Filter + 2+1 (ACTIVE DEFAULT MATCHING SCREENSHOT) -->
+                  <button type="button" class="layout-card-btn active p-2 rounded-xl border text-center transition-all bg-brand-50/70 border-emerald-500 ring-2 ring-emerald-500/20" data-layout="filter+2+1" data-category="经典栅格">
+                    <div class="h-9 w-full bg-emerald-100/50 rounded-md p-1 mb-1 flex flex-col justify-between gap-1">
+                      <div class="w-full h-2 wireframe-box"></div>
+                      <div class="flex gap-1 h-3.5"><div class="w-1/2 h-full wireframe-box"></div><div class="w-1/2 h-full wireframe-box"></div></div>
+                      <div class="w-full h-2 wireframe-box"></div>
+                    </div>
+                    <span class="text-[11px] font-bold text-emerald-800 block truncate">Filter + 2+1</span>
+                  </button>
+
+                  <!-- 18. KPI 4+3 -->
+                  <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="kpi4+3" data-category="经典栅格">
+                    <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col gap-1">
+                      <div class="grid grid-cols-4 gap-0.5 h-2"><div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div></div>
+                      <div class="grid grid-cols-3 gap-0.5 h-4.5"><div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div></div>
+                    </div>
+                    <span class="text-[11px] font-medium text-slate-700 block truncate">KPI 4+3 矩阵</span>
+                  </button>
+                </div>
+
+                <!-- TAB 2: 线条极简型布局 (Line-based Layouts, 4 款) -->
+                <div id="tab-line" class="layout-tab-content hidden grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="line-area-split" data-category="线条极简">
+                    <div class="h-10 w-full bg-slate-50 border border-slate-200 rounded-md p-1 mb-1.5 flex flex-col justify-between">
+                      <div class="h-1.5 w-1/3 bg-slate-400 rounded-xs"></div>
+                      <div class="w-full h-px bg-slate-300"></div>
+                      <div class="flex gap-1 h-4">
+                        <div class="w-1/2 border-r border-slate-300"></div>
+                        <div class="w-1/2"></div>
+                      </div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-800 block">细线区域分割 (Area Title)</span>
+                    <span class="text-[10px] text-slate-400">参考图 5/6/8 纯净细线</span>
+                  </button>
+
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="line-crosshair" data-category="线条极简">
+                    <div class="h-10 w-full bg-slate-50 border border-slate-200 rounded-md p-1 mb-1.5 relative flex items-center justify-center">
+                      <div class="absolute inset-x-0 h-px bg-slate-400"></div>
+                      <div class="absolute inset-y-0 w-px bg-slate-400"></div>
+                      <div class="w-2 h-2 rounded-full border border-slate-600 bg-white z-10"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-800 block">十字标尺工程线</span>
+                    <span class="text-[10px] text-slate-400">高精度坐标参考系</span>
+                  </button>
+
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="line-header-lead" data-category="线条极简">
+                    <div class="h-10 w-full bg-slate-50 border border-slate-200 rounded-md p-1 mb-1.5 flex flex-col justify-between">
+                      <div class="h-2 w-full border-b border-emerald-500 flex items-center">
+                        <div class="h-1 w-6 bg-emerald-500 rounded"></div>
+                      </div>
+                      <div class="grid grid-cols-3 gap-1 h-5 pt-1">
+                        <div class="border-b border-slate-300"></div>
+                        <div class="border-b border-slate-300"></div>
+                        <div class="border-b border-slate-300"></div>
+                      </div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-800 block">通栏引导线布局</span>
+                    <span class="text-[10px] text-slate-400">极简指标走廊</span>
+                  </button>
+
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="line-borderless-matrix" data-category="线条极简">
+                    <div class="h-10 w-full bg-slate-50 border border-slate-200 rounded-md p-1 mb-1.5 grid grid-cols-2 grid-rows-2 divide-x divide-y divide-slate-300">
+                      <div></div><div></div><div></div><div></div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-800 block">无框极简发丝线矩阵</span>
+                    <span class="text-[10px] text-slate-400">呼吸感发丝分割</span>
+                  </button>
+                </div>
+
+                <!-- TAB 3: 3D/空间透视布局 (3D & Dimensional Layouts, 4 款) -->
+                <div id="tab-dimensional" class="layout-tab-content hidden grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="3d-neumorphic" data-category="3D与空间透视">
+                    <div class="h-10 w-full bg-slate-100 rounded-md p-1.5 mb-1.5 flex items-center justify-center">
+                      <div class="w-12 h-6 bg-slate-100 rounded shadow-[2px_2px_4px_#cbd5e1,-2px_-2px_4px_#ffffff] border border-white/40"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-800 block">微立体拟物浮雕 (Neumorphic)</span>
+                    <span class="text-[10px] text-slate-400">软材质光影凹凸</span>
+                  </button>
+
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="3d-isometric" data-category="3D与空间透视">
+                    <div class="h-10 w-full bg-slate-100 rounded-md p-1.5 mb-1.5 flex items-center justify-center">
+                      <div class="w-10 h-6 bg-emerald-500/20 border border-emerald-500 rounded transform -skew-y-6 rotate-6 shadow-md"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-800 block">等轴测层叠透视 (Isometric)</span>
+                    <span class="text-[10px] text-slate-400">倾斜 2.5D 立体感</span>
+                  </button>
+
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="3d-stepped" data-category="3D与空间透视">
+                    <div class="h-10 w-full bg-slate-100 rounded-md p-1 mb-1.5 flex items-center justify-center space-x-1">
+                      <div class="w-3 h-5 bg-slate-300 rounded shadow-xs"></div>
+                      <div class="w-3 h-6 bg-slate-400 rounded shadow-md transform -translate-y-1"></div>
+                      <div class="w-3 h-7 bg-emerald-500 rounded shadow-lg transform -translate-y-2"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-800 block">阶梯式多层进深 (Stepped)</span>
+                    <span class="text-[10px] text-slate-400">Z 轴梯级悬浮高度</span>
+                  </button>
+
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="3d-double-cap" data-category="3D与空间透视">
+                    <div class="h-10 w-full bg-slate-100 rounded-md p-1 mb-1.5 flex flex-col justify-center items-center">
+                      <div class="w-12 h-2.5 bg-indigo-600 rounded-t-sm shadow-xs"></div>
+                      <div class="w-12 h-5 bg-white border border-slate-300 rounded-b-sm shadow-md"></div>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-800 block">双层立体顶盖卡片</span>
+                    <span class="text-[10px] text-slate-400">参考图 9 堆叠帽檐</span>
+                  </button>
+                </div>
+
+                <!-- TAB 4: 商务潮流定制模板 (参考用户图片专属打造, 5 款) -->
+                <div id="tab-templates" class="layout-tab-content hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  
+                  <!-- 模板 A: 有机曲线流体侧栏 (参考图 5, 6, 7) -->
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-left transition-all bg-white hover:border-slate-300" data-layout="template-wave-sidebar" data-category="潮流商务模板">
+                    <div class="h-12 w-full bg-[#e8edfb] rounded-lg p-1.5 mb-1.5 flex gap-1 overflow-hidden relative border border-indigo-100">
+                      <div class="w-1/4 h-full bg-[#7089fa] rounded-l-md flex flex-col items-center justify-around relative">
+                        <div class="w-2 h-2 rounded-full bg-white shadow-xs"></div>
+                        <div class="w-2 h-2 rounded-full bg-white/40"></div>
+                      </div>
+                      <div class="flex-1 flex flex-col justify-between py-0.5">
+                        <div class="h-2 w-full bg-white rounded-xs"></div>
+                        <div class="flex gap-1 h-5">
+                          <div class="w-2/3 bg-white rounded-xs"></div>
+                          <div class="w-1/3 bg-white rounded-xs"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-800 block truncate">模板 A · 有机曲线流体侧栏</span>
+                    <span class="text-[10px] text-slate-500 block truncate">波浪凸起联动高亮点 (图 5/6/7)</span>
+                  </button>
+
+                  <!-- 模板 B: 包豪斯几何艺术饰条 (参考图 8) -->
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-left transition-all bg-white hover:border-slate-300" data-layout="template-bauhaus-memphis" data-category="潮流商务模板">
+                    <div class="h-12 w-full bg-[#f8fafc] rounded-lg mb-1.5 flex flex-col overflow-hidden relative border border-slate-200">
+                      <!-- Geometric header banner -->
+                      <div class="h-3 w-full bg-gradient-to-r from-red-400 via-amber-300 via-emerald-400 to-blue-500 flex items-center justify-around px-1">
+                        <div class="w-1.5 h-1.5 bg-black rounded-full"></div>
+                        <div class="w-1.5 h-1.5 bg-white transform rotate-45"></div>
+                      </div>
+                      <div class="flex-1 flex p-1 gap-1">
+                        <div class="w-1/5 h-full bg-white rounded shadow-xs border border-slate-200"></div>
+                        <div class="flex-1 flex flex-col justify-between">
+                          <div class="h-3 bg-white rounded-xs"></div>
+                          <div class="flex justify-end gap-1">
+                            <div class="w-3 h-3 bg-rose-500 rounded"></div>
+                            <div class="w-3 h-3 bg-sky-400 rounded"></div>
+                            <div class="w-3 h-3 bg-slate-900 rounded"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-800 block truncate">模板 B · 包豪斯几何艺术饰条</span>
+                    <span class="text-[10px] text-slate-500 block truncate">彩色几何顶栏与动作卡片 (图 8)</span>
+                  </button>
+
+                  <!-- 模板 C: 对角科技切面 (参考图 9) -->
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-left transition-all bg-white hover:border-slate-300" data-layout="template-diagonal-tech" data-category="潮流商务模板">
+                    <div class="h-12 w-full bg-[#f5f3ff] rounded-lg p-1.5 mb-1.5 flex gap-1 overflow-hidden relative border border-purple-200">
+                      <div class="absolute -top-3 -right-3 w-8 h-8 bg-indigo-600 transform rotate-45"></div>
+                      <div class="w-1/4 h-full bg-[#5b21b6] rounded-l-md flex flex-col items-center justify-center">
+                        <div class="w-2.5 h-2.5 rounded-full bg-white"></div>
+                      </div>
+                      <div class="flex-1 flex flex-col justify-between py-0.5">
+                        <div class="h-3 w-3/4 bg-white rounded-t-sm border-t-2 border-indigo-600"></div>
+                        <div class="flex gap-1 h-5">
+                          <div class="w-1/3 bg-indigo-600 rounded-sm"></div>
+                          <div class="w-2/3 bg-white rounded-sm"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-800 block truncate">模板 C · 对角科技切面</span>
+                    <span class="text-[10px] text-slate-500 block truncate">四角科技切角与双层盖头 (图 9)</span>
+                  </button>
+
+                  <!-- 模板 D: 极简悬浮胶囊舱 (参考图 4, 10) -->
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-left transition-all bg-white hover:border-slate-300" data-layout="template-capsule-dock" data-category="潮流商务模板">
+                    <div class="h-12 w-full bg-[#e0e7ff] rounded-lg p-1 mb-1.5 flex gap-1 overflow-hidden relative border border-indigo-200">
+                      <div class="w-4 h-full bg-[#4f46e5] rounded-full flex flex-col items-center justify-around py-1">
+                        <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                        <div class="w-1.5 h-1.5 rounded-full bg-white/40"></div>
+                      </div>
+                      <div class="flex-1 bg-white/80 rounded-xl p-1 flex flex-col justify-between shadow-xs">
+                        <div class="h-2 w-1/2 bg-slate-200 rounded"></div>
+                        <div class="h-4 w-full bg-slate-100 rounded"></div>
+                      </div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-800 block truncate">模板 D · 极简悬浮胶囊舱</span>
+                    <span class="text-[10px] text-slate-500 block truncate">悬浮胶囊栏与等高线微光 (图 4/10)</span>
+                  </button>
+
+                  <!-- 模板 E: 独立悬空浮动岛 (参考图 11) -->
+                  <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-left transition-all bg-white hover:border-slate-300" data-layout="template-floating-island" data-category="潮流商务模板">
+                    <div class="h-12 w-full bg-[#f1f5f9] rounded-lg p-1 mb-1.5 flex gap-1.5 overflow-hidden relative border border-slate-200">
+                      <div class="w-3.5 h-full bg-[#f97316] rounded-full flex flex-col items-center justify-around py-1 shadow-sm">
+                        <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+                      </div>
+                      <div class="flex-1 bg-white rounded-lg p-1 flex flex-col justify-between border-r-4 border-rose-100">
+                        <div class="h-2.5 w-full bg-amber-100 rounded"></div>
+                        <div class="grid grid-cols-3 gap-0.5 h-3">
+                          <div class="bg-slate-100 rounded"></div>
+                          <div class="bg-slate-100 rounded"></div>
+                          <div class="bg-slate-100 rounded"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <span class="text-xs font-bold text-slate-800 block truncate">模板 E · 独立悬空浮动岛</span>
+                    <span class="text-[10px] text-slate-500 block truncate">独立胶囊外挂栏与双色分屏 (图 11)</span>
+                  </button>
+
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCORDION 2: Chrome (Navigation & Frame) -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+            <button class="accordion-toggle w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-50/60 transition-colors" data-target="panel-chrome">
+              <div class="flex items-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-slate-800">侧边栏与标题栏 (Chrome)</h4>
+                  <p id="accSummaryChrome" class="text-xs text-slate-400">顶栏 · 完整侧边栏</p>
+                </div>
+              </div>
+              <svg class="accordion-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div id="panel-chrome" class="accordion-content hidden border-t border-slate-100 p-4 space-y-3.5 bg-slate-50/30">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">侧边导航风格</label>
+                  <select id="sidebarSelect" class="w-full text-xs font-medium bg-white border border-slate-200 rounded-lg p-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="full" selected>完整左侧导航栏 (Full Sidebar)</option>
+                    <option value="compact">紧凑图标微型栏 (Mini Dock)</option>
+                    <option value="floating">独立悬浮胶囊舱 (Floating Pill)</option>
+                    <option value="wave">有机波浪曲线侧栏 (Organic Wave)</option>
+                    <option value="none">无侧边栏 (全屏通栏)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">顶部导航标签样式</label>
+                  <select id="chromeTabSelect" class="w-full text-xs font-medium bg-white border border-slate-200 rounded-lg p-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <option value="underline" selected>下划线高亮强调 (Underline)</option>
+                    <option value="pills">胶囊药丸标签 (Pills)</option>
+                    <option value="minimal">极简状态微圆点 (Minimal Dots)</option>
+                    <option value="none">无标签 (纯净标题栏)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                <div class="flex items-center space-x-2">
+                  <span class="text-xs font-semibold text-slate-600">标签项数量：</span>
+                  <div class="inline-flex rounded-lg border border-slate-200 p-0.5 bg-white">
+                    <button type="button" class="tab-count-btn px-2.5 py-0.5 text-xs rounded font-medium text-slate-600" data-count="3">3</button>
+                    <button type="button" class="tab-count-btn px-2.5 py-0.5 text-xs rounded font-medium text-slate-600" data-count="4">4</button>
+                    <button type="button" class="tab-count-btn active px-2.5 py-0.5 text-xs rounded font-medium bg-emerald-500 text-white" data-count="5">5</button>
+                    <button type="button" class="tab-count-btn px-2.5 py-0.5 text-xs rounded font-medium text-slate-600" data-count="6">6</button>
+                  </div>
+                </div>
+                <label class="flex items-center space-x-2 cursor-pointer">
+                  <input type="checkbox" id="footerToggle" class="w-3.5 h-3.5 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
+                  <span class="text-xs font-medium text-slate-600">启用底部标牌状态栏</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCORDION 3: KPI Cards -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+            <button class="accordion-toggle w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-50/60 transition-colors" data-target="panel-kpi">
+              <div class="flex items-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-slate-800">KPI 核心指标卡 (KPI Cards)</h4>
+                  <p id="accSummaryKpi" class="text-xs text-slate-400">4 张指标卡</p>
+                </div>
+              </div>
+              <svg class="accordion-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div id="panel-kpi" class="accordion-content hidden border-t border-slate-100 p-4 space-y-3 bg-slate-50/30">
+              <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">指标卡显示数量 (0~6)</label>
+              <div class="grid grid-cols-6 gap-2">
+                <button type="button" class="kpi-btn py-1.5 text-xs rounded-lg border font-semibold text-center transition-all bg-white text-slate-700 border-slate-200" data-kpi="0">0 (关闭)</button>
+                <button type="button" class="kpi-btn py-1.5 text-xs rounded-lg border font-semibold text-center transition-all bg-white text-slate-700 border-slate-200" data-kpi="2">2 张</button>
+                <button type="button" class="kpi-btn py-1.5 text-xs rounded-lg border font-semibold text-center transition-all bg-white text-slate-700 border-slate-200" data-kpi="3">3 张</button>
+                <button type="button" class="kpi-btn active py-1.5 text-xs rounded-lg border font-semibold text-center transition-all bg-emerald-500 text-white border-emerald-500 shadow-xs" data-kpi="4">4 张</button>
+                <button type="button" class="kpi-btn py-1.5 text-xs rounded-lg border font-semibold text-center transition-all bg-white text-slate-700 border-slate-200" data-kpi="5">5 张</button>
+                <button type="button" class="kpi-btn py-1.5 text-xs rounded-lg border font-semibold text-center transition-all bg-white text-slate-700 border-slate-200" data-kpi="6">6 张</button>
+              </div>
+
+              <div class="pt-2 border-t border-slate-200 flex items-center justify-between text-xs">
+                <span class="text-slate-600 font-medium">指标卡装饰风格</span>
+                <select id="kpiStyleSelect" class="text-xs bg-white border border-slate-200 rounded-md px-2 py-1 text-slate-700 focus:outline-none">
+                  <option value="minimal" selected>经典极简线框</option>
+                  <option value="accent-top">顶部强调色条</option>
+                  <option value="stacked-cap">双层立体顶盖 (Cap)</option>
+                  <option value="neumorphic">微立体凸起浮雕</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCORDION 4: Style (Spacing, Radius & Directional Shadow Engine) -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+            <button class="accordion-toggle w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-50/60 transition-colors" data-target="panel-style">
+              <div class="flex items-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-slate-800">卡片样式与阴影 (Style &amp; Shadow)</h4>
+                  <p id="accSummaryStyle" class="text-xs text-slate-400 font-mono">间距 20 · 圆角 4 · 投影 ×1 向下</p>
+                </div>
+              </div>
+              <svg class="accordion-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div id="panel-style" class="accordion-content hidden border-t border-slate-100 p-4 space-y-4 bg-white">
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">间距 (SPACING)</label>
+                  <input type="number" id="inputSpacing" value="20" min="0" max="64" class="w-full bg-[#f8fafc] border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div>
+                  <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">圆角半径 (RADIUS)</label>
+                  <input type="number" id="inputRadius" value="4" min="0" max="40" class="w-full bg-[#f8fafc] border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+              </div>
+
+              <!-- Card Shadow Section -->
+              <div class="pt-2 border-t border-slate-100 space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-slate-800">卡片空间投影 (Card Shadow)</span>
+                  <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="shadowToggle" class="sr-only peer" checked>
+                    <div class="w-8 h-4.5 bg-slate-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-500"></div>
+                  </label>
+                </div>
+
+                <div id="shadowControlsGroup" class="space-y-3">
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-500 font-medium">投影强度</span>
+                    <div class="flex items-center bg-[#f4f4f5] rounded-lg p-0.5 border border-slate-200">
+                      <button id="intensityDecBtn" type="button" class="w-6 h-5 flex items-center justify-center text-slate-600 hover:text-slate-900 rounded font-bold text-xs">−</button>
+                      <span id="intensityVal" class="w-7 text-center font-mono font-semibold text-slate-800 text-xs">1</span>
+                      <button id="intensityIncBtn" type="button" class="w-6 h-5 flex items-center justify-center text-slate-600 hover:text-slate-900 rounded font-bold text-xs">+</button>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-500 font-medium">投影方向</span>
+                    <div class="flex items-center space-x-1.5 bg-[#f4f4f5] p-1 rounded-xl border border-slate-200">
+                      <button type="button" class="side-btn w-8 h-6 rounded-lg font-bold flex items-center justify-center text-slate-700 hover:bg-slate-200" data-side="up">↑</button>
+                      <button type="button" class="side-btn active w-8 h-6 rounded-lg font-bold flex items-center justify-center bg-[#18181b] text-white shadow-xs" data-side="down">↓</button>
+                      <button type="button" class="side-btn w-8 h-6 rounded-lg font-bold flex items-center justify-center text-slate-700 hover:bg-slate-200" data-side="left">←</button>
+                      <button type="button" class="side-btn w-8 h-6 rounded-lg font-bold flex items-center justify-center text-slate-700 hover:bg-slate-200" data-side="right">→</button>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-slate-500 font-medium">投影作用对象</span>
+                    <div class="flex items-center space-x-1.5 w-52">
+                      <button type="button" id="applyKpisBtn" class="flex-1 py-1 rounded-lg text-xs font-semibold bg-[#18181b] text-white text-center">仅 KPI 指标卡</button>
+                      <button type="button" id="applyVisualsBtn" class="flex-1 py-1 rounded-lg text-xs font-semibold bg-[#18181b] text-white text-center">图表主卡片</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCORDION 5: Color Preset (18 Choices - Expanded Selection) -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+            <button class="accordion-toggle w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-50/60 transition-colors" data-target="panel-colors">
+              <div class="flex items-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-slate-800">主题色彩预设 (Color Presets)</h4>
+                  <p id="accSummaryColors" class="text-xs text-slate-400">炭黑深色 (Charcoal)</p>
+                </div>
+              </div>
+              <svg class="accordion-chevron w-4 h-4 text-slate-400 rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            
+            <div id="panel-colors" class="accordion-content border-t border-slate-100 p-4 space-y-4 bg-white">
+              
+              <!-- 18 Swatch Cards Grid matching all screenshots + new trend palettes -->
+              <div id="colorPresetsGrid" class="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
+                
+                <!-- 1. 纯净白 (Clean White) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="clean-white">
+                  <div class="h-10 w-full rounded-lg bg-[#F8FAFC] border border-slate-200 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#6366F1] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">纯净白</span>
+                </button>
+
+                <!-- 2. 温润沙褐 (Warm Sand) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="warm-sand">
+                  <div class="h-10 w-full rounded-lg bg-[#F5F2EB] border border-slate-200 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#B45309] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">温润沙褐</span>
+                </button>
+
+                <!-- 3. 冷冽板岩 (Cool Slate) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="cool-slate">
+                  <div class="h-10 w-full rounded-lg bg-[#F1F5F9] border border-slate-200 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#E11D48] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">冷冽板岩</span>
+                </button>
+
+                <!-- 4. 鼠尾草绿 (Sage Forest) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="sage-forest">
+                  <div class="h-10 w-full rounded-lg bg-[#F0FDF4] border border-slate-200 p-1 flex flex-col gap-0.5 mb-1">
+                    <div class="w-full h-1.5 bg-[#0F766E] rounded-xs"></div>
+                    <div class="flex-1 flex gap-1"><div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#0F766E] rounded-xs"></div></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">鼠尾草绿</span>
+                </button>
+
+                <!-- 5. 柔紫罗兰 (Soft Lavender) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="soft-lavender">
+                  <div class="h-10 w-full rounded-lg bg-[#FAF5FF] border border-slate-200 p-1 flex flex-col gap-0.5 mb-1">
+                    <div class="w-full h-1.5 bg-[#0D9488] rounded-xs"></div>
+                    <div class="flex-1 flex gap-1"><div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#0D9488] rounded-xs"></div></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">柔紫罗兰</span>
+                </button>
+
+                <!-- 6. 青柠鲜活 (Lime Fresh) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="lime-fresh">
+                  <div class="h-10 w-full rounded-lg bg-[#F7FEE7] border border-slate-200 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#65A30D] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">青柠鲜活</span>
+                </button>
+
+                <!-- 7. 深邃海军蓝 (Navy) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="navy">
+                  <div class="h-10 w-full rounded-lg bg-[#1E293B] border border-slate-700 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-[#334155] rounded-xs"></div><div class="w-3 bg-[#10B981] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">深邃海军蓝</span>
+                </button>
+
+                <!-- 8. 炭黑深色 (Charcoal - 默认高亮) -->
+                <button type="button" class="preset-card-btn active p-1.5 rounded-xl border-2 border-slate-900 ring-2 ring-slate-900/10 text-center transition-all bg-white" data-preset="charcoal">
+                  <div class="h-10 w-full rounded-lg bg-[#18191C] border border-slate-700 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-[#26282D] rounded-xs"></div><div class="w-3 bg-[#F59E0B] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-bold text-slate-900 block truncate">炭黑深色</span>
+                </button>
+
+                <!-- 9. 午夜霓虹 (Midnight) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="midnight">
+                  <div class="h-10 w-full rounded-lg bg-[#0B1329] border border-slate-800 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-[#17223B] rounded-xs"></div><div class="w-3 bg-[#38BDF8] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">午夜霓虹</span>
+                </button>
+
+                <!-- 10. 深青墨绿 (Dark Teal) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="dark-teal">
+                  <div class="h-10 w-full rounded-lg bg-[#042024] border border-teal-900 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-[#0A363D] rounded-xs"></div><div class="w-3 bg-[#2DD4BF] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">深青墨绿</span>
+                </button>
+
+                <!-- 11. 暖灰深黑 (Dark Warm) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="dark-warm">
+                  <div class="h-10 w-full rounded-lg bg-[#1C1917] border border-stone-800 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-[#292524] rounded-xs"></div><div class="w-3 bg-[#F97316] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">暖灰深黑</span>
+                </button>
+
+                <!-- 12. 暗夜柔蓝 (Navy Soft) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="navy-soft">
+                  <div class="h-10 w-full rounded-lg bg-[#111927] border border-slate-800 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-[#1F293D] rounded-xs"></div><div class="w-3 bg-[#60A5FA] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">暗夜柔蓝</span>
+                </button>
+
+                <!-- 13. 太平洋蓝 (Pacific Blue) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="pacific-blue">
+                  <div class="h-10 w-full rounded-lg bg-[#F0F7FF] border border-blue-100 p-1 flex flex-col gap-0.5 mb-1">
+                    <div class="w-full h-1.5 bg-[#2563EB] rounded-xs"></div>
+                    <div class="flex-1 flex gap-1"><div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#3B82F6] rounded-xs"></div></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">太平洋蓝</span>
+                </button>
+
+                <!-- 14. 太平洋雾 (Pacific Mist) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="pacific-mist">
+                  <div class="h-10 w-full rounded-lg bg-[#EEF2F6] border border-slate-200 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#0D9488] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">太平洋雾</span>
+                </button>
+
+                <!-- 15. 包豪斯多色 (Bauhaus Memphis - 新增) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="bauhaus-memphis">
+                  <div class="h-10 w-full rounded-lg bg-[#FAFAF9] border border-slate-200 p-1 flex flex-col gap-0.5 mb-1">
+                    <div class="w-full h-1.5 bg-gradient-to-r from-red-500 via-amber-400 to-blue-500 rounded-xs"></div>
+                    <div class="flex-1 flex gap-1"><div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#EF4444] rounded-xs"></div></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">包豪斯几何</span>
+                </button>
+
+                <!-- 16. 梦幻极光紫 (Aurora Purple - 新增) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="aurora-purple">
+                  <div class="h-10 w-full rounded-lg bg-[#2E1065] border border-purple-800 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-[#3B0764] rounded-xs"></div><div class="w-3 bg-[#A855F7] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">梦幻极光紫</span>
+                </button>
+
+                <!-- 17. 暖珊瑚日落 (Coral Sunset - 新增) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="coral-sunset">
+                  <div class="h-10 w-full rounded-lg bg-[#FFF1F2] border border-rose-200 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#F43F5E] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">暖珊瑚日落</span>
+                </button>
+
+                <!-- 18. 极客暗夜金 (Cyber Gold - 新增) -->
+                <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="cyber-gold">
+                  <div class="h-10 w-full rounded-lg bg-[#0F0F11] border border-amber-900/60 p-1 flex gap-1 mb-1">
+                    <div class="flex-1 bg-[#1A1A1E] rounded-xs"></div><div class="w-3 bg-[#EAB308] rounded-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-medium text-slate-700 block truncate">极客暗夜金</span>
+                </button>
+
+              </div>
+
+              <!-- Custom Color Controls -->
+              <div class="pt-3 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                <div class="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200">
+                  <span class="text-slate-600 font-medium">画布底色 (Canvas BG)</span>
+                  <input type="color" id="colorCanvas" value="#18191C" class="w-6 h-6 rounded cursor-pointer border-0 p-0">
+                </div>
+                <div class="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200">
+                  <span class="text-slate-600 font-medium">卡片底色 (Card BG)</span>
+                  <input type="color" id="colorCard" value="#26282D" class="w-6 h-6 rounded cursor-pointer border-0 p-0">
+                </div>
+                <div class="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200">
+                  <span class="text-slate-600 font-medium">主题高亮 (Accent)</span>
+                  <input type="color" id="colorAccent" value="#F59E0B" class="w-6 h-6 rounded cursor-pointer border-0 p-0">
+                </div>
+                <div class="flex items-center justify-between bg-slate-50 p-2 rounded-lg border border-slate-200">
+                  <span class="text-slate-600 font-medium">侧边栏底色 (Sidebar BG)</span>
+                  <input type="color" id="colorSidebar" value="#141517" class="w-6 h-6 rounded cursor-pointer border-0 p-0">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ACCORDION 6: Logo (Brand Upload) -->
+          <div class="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+            <button class="accordion-toggle w-full p-3.5 flex items-center justify-between text-left hover:bg-slate-50/60 transition-colors" data-target="panel-logo">
+              <div class="flex items-center space-x-3">
+                <div class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                </div>
+                <div>
+                  <h4 class="text-sm font-semibold text-slate-800">企业与品牌徽标 (Logo)</h4>
+                  <p id="accSummaryLogo" class="text-xs text-slate-400">未选择文件 — 支持 PNG, JPG 或 SVG</p>
+                </div>
+              </div>
+              <svg class="accordion-chevron w-4 h-4 text-slate-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div id="panel-logo" class="accordion-content hidden border-t border-slate-100 p-4 space-y-3 bg-slate-50/30">
+              <div class="border-2 border-dashed border-slate-200 hover:border-emerald-400 rounded-xl p-3 text-center cursor-pointer transition-colors bg-white relative">
+                <input type="file" id="logoFileInput" accept="image/png, image/jpeg, image/svg+xml" class="absolute inset-0 opacity-0 cursor-pointer">
+                <div class="space-y-1">
+                  <svg class="w-5 h-5 mx-auto text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                  <p class="text-xs font-semibold text-slate-700">点击上传或将企业 Logo 拖曳至此</p>
+                  <p class="text-[10px] text-slate-400">支持 SVG、PNG 透明格式，实时嵌入报表顶角</p>
+                </div>
+              </div>
+              <div id="logoPreviewRow" class="hidden items-center justify-between bg-white p-2 rounded-lg border border-slate-200">
+                <div class="flex items-center space-x-2">
+                  <img id="logoThumbImg" class="w-5 h-5 object-contain rounded" alt="Thumb">
+                  <span id="logoFileName" class="text-xs font-medium text-slate-700 truncate max-w-[170px]">logo.svg</span>
+                </div>
+                <button type="button" id="removeLogoBtn" class="text-slate-400 hover:text-red-500 text-xs font-semibold p-1">移除徽标</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Sticky Bottom Generate Button -->
+        <div class="p-4 bg-white border-t border-slate-200 flex-shrink-0">
+          <button id="generateBtn" class="w-full py-3 px-6 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center space-x-2 transition-all shadow-md shadow-emerald-500/20 hover:shadow-lg hover:shadow-emerald-500/30 transform active:scale-[0.99]">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+            <span>生成并导出背景 (Generate Background)</span>
+          </button>
+        </div>
+
+      </section>
+    </div>
+  </div>
+
+  <!-- EXPORT DIALOG MODAL (CHINESE) -->
+  <div id="exportModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden opacity-0 transition-opacity duration-200">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 transform scale-95 transition-transform duration-200">
+      
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center space-x-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-slate-800">导出 Power BI 画布资产</h3>
+            <p class="text-xs text-slate-500">已深度适配 Power BI Desktop 与 Figma 工作流</p>
+          </div>
+        </div>
+        <button id="closeModalBtn" class="text-slate-400 hover:text-slate-700 p-1 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="border border-slate-200 hover:border-emerald-500 rounded-xl p-3.5 transition-all bg-slate-50/50">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-slate-800">PNG 高清背景壁纸</span>
+            <span class="text-[10px] font-mono uppercase bg-emerald-100 text-emerald-700 font-bold px-1.5 py-0.5 rounded">推荐</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mb-3">原生像素对齐，包含完整的卡片槽位、精准发光阴影与装饰线条。</p>
+          <div class="flex space-x-2">
+            <button id="downloadPng1xBtn" class="flex-1 py-1.5 px-2 bg-white border border-slate-300 hover:border-emerald-600 text-slate-700 text-xs font-semibold rounded-lg transition">下载 1x PNG</button>
+            <button id="downloadPng2xBtn" class="flex-1 py-1.5 px-2 bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-semibold rounded-lg transition">下载 2x 视网膜</button>
+          </div>
+        </div>
+
+        <div class="border border-slate-200 hover:border-emerald-500 rounded-xl p-3.5 transition-all bg-slate-50/50">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-bold text-slate-800">矢量 SVG 文件</span>
+            <span class="text-[10px] font-mono uppercase bg-slate-200 text-slate-600 font-bold px-1.5 py-0.5 rounded">Figma</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mb-3">无损矢量图形结构，内置 feDropShadow 滤镜，可直接导入 Figma 自由微调。</p>
+          <div class="flex space-x-2">
+            <button id="downloadSvgBtn" class="flex-1 py-1.5 px-2 bg-white border border-slate-300 hover:border-emerald-600 text-slate-700 text-xs font-semibold rounded-lg transition">下载 SVG</button>
+            <button id="copySvgBtn" class="flex-1 py-1.5 px-2 bg-white border border-slate-300 hover:border-emerald-600 text-slate-700 text-xs font-semibold rounded-lg transition">复制 XML</button>
+          </div>
+        </div>
+
+        <div class="border border-slate-200 hover:border-emerald-500 rounded-xl p-3.5 transition-all bg-slate-50/50 sm:col-span-2">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-xs font-bold text-slate-800">Power BI 官方主题配置 (Theme JSON)</span>
+            <span class="text-[10px] font-mono uppercase bg-blue-100 text-blue-700 font-bold px-1.5 py-0.5 rounded">官方标准</span>
+          </div>
+          <p class="text-[11px] text-slate-500 mb-2.5">一键配置 Power BI 视觉对象的默认背景色、圆角半径、边框及 8 色调色板。</p>
+          <button id="downloadThemeBtn" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg transition flex items-center justify-center space-x-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            <span>下载 Power BI 主题文件 (.json)</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-[11px] text-slate-600 space-y-1">
+        <span class="font-bold text-slate-700">⚡ Power BI 3步应用指南：</span>
+        <ol class="list-decimal list-inside space-y-0.5 text-slate-500">
+          <li>在 Power BI Desktop 中点击报表空白处 &gt; 打开右侧【格式化页面】 &gt; 【画布背景】。</li>
+          <li>点击【浏览...】选择下载的 PNG 背景底图。</li>
+          <li>将【图像拟合】设置为 <span class="font-mono text-emerald-600 font-bold">适合 (Fit)</span>，并将【透明度】滑块拉至 <span class="font-mono text-emerald-600 font-bold">0%</span>。</li>
+        </ol>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Notification Message -->
+  <div id="toastMessage" class="fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs font-semibold flex items-center space-x-2 hidden z-50 pointer-events-none">
+    <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <span id="toastText">操作成功完成</span>
+  </div>
+
+  <!-- Hidden HTML5 Canvas for Export Generation -->
+  <canvas id="exportCanvas" class="hidden"></canvas>
+
+  <!-- ================= JAVASCRIPT APPLICATION CORE ================= -->
+  <script>
+    /* Complete Theme Presets (18 Palettes) */
+    const PRESET_COLLECTION = {
+      'clean-white': {
+        name: '纯净白 (Clean White)',
+        canvasBg: '#F8FAFC',
+        cardBg: '#FFFFFF',
+        accent: '#6366F1',
+        sidebarBg: '#FFFFFF',
+        border: '#E2E8F0',
+        text: '#1E293B',
+        isDark: false
+      },
+      'warm-sand': {
+        name: '温润沙褐 (Warm Sand)',
+        canvasBg: '#F5F2EB',
+        cardBg: '#FFFFFF',
+        accent: '#B45309',
+        sidebarBg: '#ECE7DE',
+        border: '#E4DDD0',
+        text: '#292524',
+        isDark: false
+      },
+      'cool-slate': {
+        name: '冷冽板岩 (Cool Slate)',
+        canvasBg: '#F1F5F9',
+        cardBg: '#FFFFFF',
+        accent: '#E11D48',
+        sidebarBg: '#E2E8F0',
+        border: '#CBD5E1',
+        text: '#0F172A',
+        isDark: false
+      },
+      'sage-forest': {
+        name: '鼠尾草绿 (Sage Forest)',
+        canvasBg: '#F0FDF4',
+        cardBg: '#FFFFFF',
+        accent: '#0F766E',
+        sidebarBg: '#DCFCE7',
+        border: '#BBF7D0',
+        text: '#064E3B',
+        isDark: false
+      },
+      'soft-lavender': {
+        name: '柔紫罗兰 (Soft Lavender)',
+        canvasBg: '#FAF5FF',
+        cardBg: '#FFFFFF',
+        accent: '#0D9488',
+        sidebarBg: '#F3E8FF',
+        border: '#E9D5FF',
+        text: '#3B0764',
+        isDark: false
+      },
+      'lime-fresh': {
+        name: '青柠鲜活 (Lime Fresh)',
+        canvasBg: '#F7FEE7',
+        cardBg: '#FFFFFF',
+        accent: '#65A30D',
+        sidebarBg: '#ECFCCB',
+        border: '#D9F99D',
+        text: '#365314',
+        isDark: false
+      },
+      'navy': {
+        name: '深邃海军蓝 (Navy)',
+        canvasBg: '#0F172A',
+        cardBg: '#1E293B',
+        accent: '#10B981',
+        sidebarBg: '#0B1120',
+        border: '#334155',
+        text: '#F8FAFC',
+        isDark: true
+      },
+      'charcoal': {
+        name: '炭黑深色 (Charcoal)',
+        canvasBg: '#18191C',
+        cardBg: '#26282D',
+        accent: '#F59E0B',
+        sidebarBg: '#141517',
+        border: '#383A40',
+        text: '#F3F4F6',
+        isDark: true
+      },
+      'midnight': {
+        name: '午夜霓虹 (Midnight)',
+        canvasBg: '#0B1329',
+        cardBg: '#17223B',
+        accent: '#38BDF8',
+        sidebarBg: '#060B18',
+        border: '#243254',
+        text: '#F9FAFB',
+        isDark: true
+      },
+      'dark-teal': {
+        name: '深青墨绿 (Dark Teal)',
+        canvasBg: '#042024',
+        cardBg: '#0A363D',
+        accent: '#2DD4BF',
+        sidebarBg: '#021316',
+        border: '#114B54',
+        text: '#F0FDFA',
+        isDark: true
+      },
+      'dark-warm': {
+        name: '暖灰深黑 (Dark Warm)',
+        canvasBg: '#1C1917',
+        cardBg: '#292524',
+        accent: '#F97316',
+        sidebarBg: '#141210',
+        border: '#44403C',
+        text: '#FAFAF9',
+        isDark: true
+      },
+      'navy-soft': {
+        name: '暗夜柔蓝 (Navy Soft)',
+        canvasBg: '#111927',
+        cardBg: '#1F293D',
+        accent: '#60A5FA',
+        sidebarBg: '#0B101B',
+        border: '#2A374F',
+        text: '#EEF2FF',
+        isDark: true
+      },
+      'pacific-blue': {
+        name: '太平洋蓝 (Pacific Blue)',
+        canvasBg: '#F0F7FF',
+        cardBg: '#FFFFFF',
+        accent: '#2563EB',
+        sidebarBg: '#E0F2FE',
+        border: '#BAE6FD',
+        text: '#0F172A',
+        isDark: false
+      },
+      'pacific-mist': {
+        name: '太平洋雾 (Pacific Mist)',
+        canvasBg: '#EEF2F6',
+        cardBg: '#FFFFFF',
+        accent: '#0D9488',
+        sidebarBg: '#E2E8F0',
+        border: '#CBD5E1',
+        text: '#1E293B',
+        isDark: false
+      },
+      'bauhaus-memphis': {
+        name: '包豪斯几何 (Bauhaus)',
+        canvasBg: '#FAFAF9',
+        cardBg: '#FFFFFF',
+        accent: '#EF4444',
+        sidebarBg: '#FFFFFF',
+        border: '#E7E5E4',
+        text: '#1C1917',
+        isDark: false
+      },
+      'aurora-purple': {
+        name: '梦幻极光紫 (Aurora)',
+        canvasBg: '#2E1065',
+        cardBg: '#3B0764',
+        accent: '#A855F7',
+        sidebarBg: '#1E0B40',
+        border: '#581C87',
+        text: '#FAF5FF',
+        isDark: true
+      },
+      'coral-sunset': {
+        name: '暖珊瑚日落 (Coral)',
+        canvasBg: '#FFF1F2',
+        cardBg: '#FFFFFF',
+        accent: '#F43F5E',
+        sidebarBg: '#FFE4E6',
+        border: '#FECDD3',
+        text: '#881337',
+        isDark: false
+      },
+      'cyber-gold': {
+        name: '极客暗夜金 (Cyber Gold)',
+        canvasBg: '#0F0F11',
+        cardBg: '#1A1A1E',
+        accent: '#EAB308',
+        sidebarBg: '#09090B',
+        border: '#27272A',
+        text: '#FEF08A',
+        isDark: true
+      }
+    };
+
+    /* App Reactive State */
+    const state = {
+      width: 1600,
+      height: 900,
+      aspectLocked: true,
+      presetKey: 'charcoal',
+      presetName: '炭黑深色 (Charcoal)',
+      layout: 'filter+2+1', // Active default matching screenshot 1
+      layoutCategory: '经典栅格',
+      sidebar: 'full', // 'full', 'compact', 'floating', 'wave', 'none'
+      chromeTabStyle: 'underline',
+      chromeTabsCount: 5,
+      showFooter: false,
+      kpiCount: 4,
+      kpiStyle: 'minimal',
+      spacing: 20,
+      radius: 4,
+      shadowEnabled: true,
+      shadowIntensity: 1,
+      shadowSides: { up: false, down: true, left: false, right: false },
+      shadowApplyKPIs: true,
+      shadowApplyVisuals: true,
+      colors: { ...PRESET_COLLECTION['charcoal'] },
+      logoDataUrl: null,
+      logoFileName: '',
+      showMockData: false
+    };
+
+    /* Friendly Layout Display Names (Chinese) */
+    const LAYOUT_NAMES = {
+      'single': '单卡片 (Single)',
+      '2rows': '双行分栏 (2 Rows)',
+      '2cols': '双列分屏 (2 Cols)',
+      '1+2': '1 + 2 版式',
+      '2+1': '2 + 1 版式',
+      'left-main': '左侧主看板 (Left Main)',
+      'right-main': '右侧主看板 (Right Main)',
+      '1+3': '1 + 3 通栏',
+      '2x2': '2 × 2 四宫格',
+      '2x2+bar': '2×2 + 底栏',
+      '2x3': '2 × 3 六卡片',
+      '3x2': '3 × 2 矩阵',
+      '3x3': '3 × 3 九宫格',
+      'side+3': '侧栏索引 + 3',
+      'dashboard': '综合仪表盘 (Dashboard)',
+      'drillthrough': '钻取分析视图 (Drillthrough)',
+      'filter+2+1': 'Filter + 2+1 (筛选器+双图+底明细)',
+      'kpi4+3': 'KPI 4+3 矩阵',
+      'line-area-split': '细线区域分割看板 (Area Title)',
+      'line-crosshair': '十字标尺工程线布局',
+      'line-header-lead': '通栏引导线布局',
+      'line-borderless-matrix': '无框极简发丝线矩阵',
+      '3d-neumorphic': '微立体拟物浮雕 (Neumorphic)',
+      '3d-isometric': '等轴测层叠透视 (Isometric)',
+      '3d-stepped': '阶梯式多层进深 (Stepped)',
+      '3d-double-cap': '双层立体顶盖卡片',
+      'template-wave-sidebar': '模板 A · 有机曲线流体侧栏 (Wave)',
+      'template-bauhaus-memphis': '模板 B · 包豪斯几何艺术饰条',
+      'template-diagonal-tech': '模板 C · 对角科技切面 (Diagonal)',
+      'template-capsule-dock': '模板 D · 极简悬浮胶囊舱 (Capsule)',
+      'template-floating-island': '模板 E · 独立悬空浮动岛 (Island)'
+    };
+
+    function getComputedShadow(isKPI) {
+      if (!state.shadowEnabled) return 'none';
+      if (isKPI && !state.shadowApplyKPIs) return 'none';
+      if (!isKPI && !state.shadowApplyVisuals) return 'none';
+
+      const intensity = state.shadowIntensity;
+      let offsetX = 0;
+      let offsetY = 0;
+
+      if (state.shadowSides.right) offsetX += intensity * 3;
+      if (state.shadowSides.left) offsetX -= intensity * 3;
+      if (state.shadowSides.down) offsetY += intensity * 3;
+      if (state.shadowSides.up) offsetY -= intensity * 3;
+
+      const blur = Math.max(3, intensity * 6);
+      const isDark = state.colors.isDark;
+      const alpha = isDark ? (0.35 * intensity).toFixed(2) : (0.08 * intensity).toFixed(2);
+      
+      return `${offsetX}px ${offsetY}px ${blur}px rgba(0, 0, 0, ${alpha})`;
+    }
+
+    // Layout boxes generator supporting classic, line-based, 3D, and trend templates
+    function getLayoutBoxes(layoutType) {
+      switch (layoutType) {
+        case 'single':
+          return [{ x: 0, y: 0, w: 100, h: 100, title: '综合核心业务总览', type: 'line' }];
+        case '2rows':
+          return [
+            { x: 0, y: 0, w: 100, h: 48, title: '顶层经营指标轨迹', type: 'line' },
+            { x: 0, y: 52, w: 100, h: 48, title: '渠道明细与转化透视', type: 'bar' }
+          ];
+        case '2cols':
+          return [
+            { x: 0, y: 0, w: 49, h: 100, title: '区域销售达成对比', type: 'bar' },
+            { x: 51, y: 0, w: 49, h: 100, title: '业务品类贡献占比', type: 'donut' }
+          ];
+        case '1+2':
+          return [
+            { x: 0, y: 0, w: 100, h: 48, title: '月度营业收入动态走势', type: 'line' },
+            { x: 0, y: 52, w: 49, h: 48, title: '各品类渗透率', type: 'donut' },
+            { x: 51, y: 52, w: 49, h: 48, title: '供应链交付吞吐量', type: 'bar' }
+          ];
+        case '2+1':
+          return [
+            { x: 0, y: 0, w: 49, h: 48, title: '客户获客成本分析', type: 'bar' },
+            { x: 51, y: 0, w: 49, h: 48, title: '生命周期留存占比', type: 'donut' },
+            { x: 0, y: 52, w: 100, h: 48, title: '季度交易流水明细矩阵', type: 'table' }
+          ];
+        case 'left-main':
+          return [
+            { x: 0, y: 0, w: 60, h: 100, title: '生产制造核心指标主盘', type: 'line' },
+            { x: 62, y: 0, w: 38, h: 48, title: '终端设备活跃分布', type: 'donut' },
+            { x: 62, y: 52, w: 38, h: 48, title: '服务响应 SLA 达成', type: 'bar' }
+          ];
+        case 'right-main':
+          return [
+            { x: 0, y: 0, w: 38, h: 48, title: '商机转化率漏斗', type: 'donut' },
+            { x: 0, y: 52, w: 38, h: 48, title: '销售管线推进时效', type: 'bar' },
+            { x: 40, y: 0, w: 60, h: 100, title: '长期复合增长率曲线', type: 'line' }
+          ];
+        case '1+3':
+          return [
+            { x: 0, y: 0, w: 100, h: 48, title: '全球大区聚合绩效看板', type: 'line' },
+            { x: 0, y: 52, w: 32, h: 48, title: '美洲区业务', type: 'bar' },
+            { x: 34, y: 52, w: 32, h: 48, title: '欧非中东区', type: 'bar' },
+            { x: 68, y: 52, w: 32, h: 48, title: '亚太区域', type: 'donut' }
+          ];
+        case '2x2':
+          return [
+            { x: 0, y: 0, w: 49, h: 48, title: '各区域毛利率对比', type: 'bar' },
+            { x: 51, y: 0, w: 49, h: 48, title: '年累计现金流走势', type: 'line' },
+            { x: 0, y: 52, w: 49, h: 48, title: '产品组合利润贡献', type: 'donut' },
+            { x: 51, y: 52, w: 49, h: 48, title: '战略客户回款记录', type: 'table' }
+          ];
+        case '2x2+bar':
+          return [
+            { x: 0, y: 0, w: 49, h: 36, title: '产品线 A 季度达成', type: 'bar' },
+            { x: 51, y: 0, w: 49, h: 36, title: '产品线 B 季度达成', type: 'line' },
+            { x: 0, y: 40, w: 49, h: 36, title: '产品线 C 季度达成', type: 'donut' },
+            { x: 51, y: 40, w: 49, h: 36, title: '产品线 D 季度达成', type: 'bar' },
+            { x: 0, y: 80, w: 100, h: 20, title: '季度汇总财务对账底栏', type: 'table' }
+          ];
+        case '2x3':
+          return [
+            { x: 0, y: 0, w: 32, h: 48, title: '核心指标 Alpha', type: 'bar' },
+            { x: 34, y: 0, w: 32, h: 48, title: '核心指标 Beta', type: 'line' },
+            { x: 68, y: 0, w: 32, h: 48, title: '核心指标 Gamma', type: 'donut' },
+            { x: 0, y: 52, w: 32, h: 48, title: '核心指标 Delta', type: 'bar' },
+            { x: 34, y: 52, w: 32, h: 48, title: '核心指标 Epsilon', type: 'line' },
+            { x: 68, y: 52, w: 32, h: 48, title: '核心指标 Zeta', type: 'donut' }
+          ];
+        case '3x2':
+          return [
+            { x: 0, y: 0, w: 49, h: 31, title: '一级重点客户', type: 'bar' },
+            { x: 51, y: 0, w: 49, h: 31, title: '二级扩展客户', type: 'line' },
+            { x: 0, y: 34, w: 49, h: 31, title: '腰部中小客户', type: 'donut' },
+            { x: 51, y: 34, w: 49, h: 31, title: '大型企业客户', type: 'bar' },
+            { x: 0, y: 68, w: 49, h: 32, title: '公共机构与政府', type: 'table' },
+            { x: 51, y: 68, w: 49, h: 32, title: '全球生态伙伴', type: 'line' }
+          ];
+        case '3x3':
+          const boxes3x3 = [];
+          for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 3; c++) {
+              boxes3x3.push({
+                x: c * 34,
+                y: r * 34,
+                w: 32,
+                h: 31,
+                title: `业务模块 ${r * 3 + c + 1}`,
+                type: (r + c) % 3 === 0 ? 'bar' : ((r + c) % 3 === 1 ? 'line' : 'donut')
+              });
+            }
+          }
+          return boxes3x3;
+        case 'side+3':
+          return [
+            { x: 0, y: 0, w: 28, h: 100, title: '组织部门分类索引', type: 'table' },
+            { x: 30, y: 0, w: 70, h: 31, title: '即时账单结算动态', type: 'line' },
+            { x: 30, y: 34, w: 70, h: 31, title: '资源并发需求吞吐', type: 'bar' },
+            { x: 30, y: 68, w: 70, h: 32, title: '净推荐值 CSAT 调研', type: 'donut' }
+          ];
+        case 'dashboard':
+          return [
+            { x: 0, y: 0, w: 100, h: 22, title: '管理层决策全局切片器', type: 'filter' },
+            { x: 0, y: 26, w: 49, h: 36, title: '年度经常性收入 ARR', type: 'line' },
+            { x: 51, y: 26, w: 49, h: 36, title: '主营业务营业利润率', type: 'bar' },
+            { x: 0, y: 66, w: 49, h: 34, title: '细分客群收益占比', type: 'donut' },
+            { x: 51, y: 66, w: 49, h: 34, title: '本季关键中标与赢单', type: 'table' }
+          ];
+        case 'drillthrough':
+          return [
+            { x: 0, y: 0, w: 26, h: 100, title: '层级钻取过滤区', type: 'table' },
+            { x: 28, y: 0, w: 72, h: 42, title: '聚合周转时效趋势', type: 'line' },
+            { x: 28, y: 46, w: 35, h: 54, title: '商机阶段漏斗', type: 'bar' },
+            { x: 65, y: 46, w: 35, h: 54, title: '赢单原因分布', type: 'donut' }
+          ];
+        case 'filter+2+1':
+          return [
+            { x: 0, y: 0, w: 100, h: 16, title: '筛选栏 · 财年 / 销售区域 / 业务板块', type: 'filter' },
+            { x: 0, y: 20, w: 49, h: 46, title: '市占率动态演变走势', type: 'line' },
+            { x: 51, y: 20, w: 49, h: 46, title: '核心品类营收贡献排行', type: 'bar' },
+            { x: 0, y: 70, w: 100, h: 30, title: '全量交易日志综合明细流水', type: 'table' }
+          ];
+        case 'kpi4+3':
+          return [
+            { x: 0, y: 0, w: 23.5, h: 22, title: '累计 ARR', type: 'kpi-mini' },
+            { x: 25.5, y: 0, w: 23.5, h: 22, title: '净利润率', type: 'kpi-mini' },
+            { x: 51, y: 0, w: 23.5, h: 22, title: 'CAC 获客', type: 'kpi-mini' },
+            { x: 76.5, y: 0, w: 23.5, h: 22, title: 'LTV 价值', type: 'kpi-mini' },
+            { x: 0, y: 26, w: 32, h: 74, title: '渠道效能对比', type: 'bar' },
+            { x: 34, y: 26, w: 32, h: 74, title: '收入增长轨迹', type: 'line' },
+            { x: 68, y: 26, w: 32, h: 74, title: '业务健康度组合', type: 'donut' }
+          ];
+
+        // --- LINE-BASED LAYOUTS (参考图 5/6/8 Area title 细线布局) ---
+        case 'line-area-split':
+          return [
+            { x: 0, y: 0, w: 58, h: 46, title: '区域指标 · Area Title A', type: 'line', isLineStyle: true },
+            { x: 62, y: 0, w: 38, h: 46, title: '明细透视 · Area Title B', type: 'donut', isLineStyle: true },
+            { x: 0, y: 52, w: 58, h: 48, title: '综合流水 · Area Title C', type: 'table', isLineStyle: true },
+            { x: 62, y: 52, w: 38, h: 48, title: '履约进度 · Area Title D', type: 'bar', isLineStyle: true }
+          ];
+        case 'line-crosshair':
+          return [
+            { x: 0, y: 0, w: 48, h: 48, title: '象限 I · 营收高爆发', type: 'bar', isCrosshair: true },
+            { x: 52, y: 0, w: 48, h: 48, title: '象限 II · 利润稳健型', type: 'line', isCrosshair: true },
+            { x: 0, y: 52, w: 48, h: 48, title: '象限 III · 潜在转型期', type: 'donut', isCrosshair: true },
+            { x: 52, y: 52, w: 48, h: 48, title: '象限 IV · 淘汰观察区', type: 'table', isCrosshair: true }
+          ];
+        case 'line-header-lead':
+          return [
+            { x: 0, y: 0, w: 100, h: 22, title: '全域核心导引线汇总走廊', type: 'line', isHairline: true },
+            { x: 0, y: 26, w: 31, h: 74, title: '支柱业务 A', type: 'bar', isHairline: true },
+            { x: 34.5, y: 26, w: 31, h: 74, title: '支柱业务 B', type: 'donut', isHairline: true },
+            { x: 69, y: 26, w: 31, h: 74, title: '支柱业务 C', type: 'line', isHairline: true }
+          ];
+        case 'line-borderless-matrix':
+          return [
+            { x: 0, y: 0, w: 49, h: 49, title: '发丝矩阵 · 市场趋势', type: 'line', isBorderless: true },
+            { x: 51, y: 0, w: 49, h: 49, title: '发丝矩阵 · 财务对账', type: 'bar', isBorderless: true },
+            { x: 0, y: 51, w: 49, h: 49, title: '发丝矩阵 · 转化效能', type: 'donut', isBorderless: true },
+            { x: 51, y: 51, w: 49, h: 49, title: '发丝矩阵 · 履约监控', type: 'table', isBorderless: true }
+          ];
+
+        // --- 3D / PERSPECTIVE / DIMENSIONAL LAYOUTS ---
+        case '3d-neumorphic':
+          return [
+            { x: 0, y: 0, w: 48, h: 48, title: '拟物浮雕卡片 A', type: 'line', isNeumorphic: true },
+            { x: 52, y: 0, w: 48, h: 48, title: '拟物浮雕卡片 B', type: 'bar', isNeumorphic: true },
+            { x: 0, y: 52, w: 48, h: 48, title: '拟物浮雕卡片 C', type: 'donut', isNeumorphic: true },
+            { x: 52, y: 52, w: 48, h: 48, title: '拟物浮雕卡片 D', type: 'table', isNeumorphic: true }
+          ];
+        case '3d-isometric':
+          return [
+            { x: 0, y: 0, w: 46, h: 46, title: '等轴测悬浮层 1', type: 'line', isIsometric: true },
+            { x: 50, y: 0, w: 46, h: 46, title: '等轴测悬浮层 2', type: 'bar', isIsometric: true },
+            { x: 0, y: 52, w: 46, h: 46, title: '等轴测悬浮层 3', type: 'donut', isIsometric: true },
+            { x: 50, y: 52, w: 46, h: 46, title: '等轴测悬浮层 4', type: 'table', isIsometric: true }
+          ];
+        case '3d-stepped':
+          return [
+            { x: 0, y: 0, w: 31, h: 100, title: 'Z轴进深层级 1 (底层)', type: 'bar', isStepped: 1 },
+            { x: 34.5, y: 0, w: 31, h: 100, title: 'Z轴进深层级 2 (中层)', type: 'line', isStepped: 2 },
+            { x: 69, y: 0, w: 31, h: 100, title: 'Z轴进深层级 3 (凸起顶层)', type: 'donut', isStepped: 3 }
+          ];
+        case '3d-double-cap':
+          return [
+            { x: 0, y: 0, w: 48, h: 48, title: '双层立体顶盖 · 营收', type: 'line', isDoubleCap: true },
+            { x: 52, y: 0, w: 48, h: 48, title: '双层立体顶盖 · 利润', type: 'bar', isDoubleCap: true },
+            { x: 0, y: 52, w: 100, h: 48, title: '双层立体顶盖 · 全局流转明细', type: 'table', isDoubleCap: true }
+          ];
+
+        // --- TRENDY COMMERCIAL TEMPLATES (参考用户上传图片) ---
+        case 'template-wave-sidebar':
+          return [
+            { x: 0, y: 0, w: 64, h: 48, title: '主图表 · 核心营收趋势', type: 'line', isWaveTemplate: true },
+            { x: 67, y: 0, w: 33, h: 48, title: '明细透视卡 · Area Title', type: 'donut', isWaveTemplate: true },
+            { x: 0, y: 52, w: 64, h: 48, title: '全景业务账单列表', type: 'table', isWaveTemplate: true },
+            { x: 67, y: 52, w: 33, h: 48, title: '右侧纵深汇总卡', type: 'bar', isWaveTemplate: true }
+          ];
+        case 'template-bauhaus-memphis':
+          return [
+            { x: 0, y: 0, w: 46, h: 48, title: '综合业绩概览', type: 'line', isBauhaus: true },
+            { x: 48, y: 0, w: 52, h: 48, title: '区域分布矩阵 · Area Title', type: 'bar', isBauhaus: true },
+            { x: 0, y: 52, w: 22, h: 48, title: '核心指标 A', type: 'donut', isBauhaus: true },
+            { x: 24, y: 52, w: 22, h: 48, title: '核心指标 B', type: 'table', isBauhaus: true },
+            { x: 48, y: 52, w: 16, h: 48, title: '动作红卡', type: 'action-red', isBauhausAction: 'red' },
+            { x: 66, y: 52, w: 16, h: 48, title: '动作蓝卡', type: 'action-cyan', isBauhausAction: 'cyan' },
+            { x: 84, y: 52, w: 16, h: 48, title: '动作暗卡', type: 'action-dark', isBauhausAction: 'dark' }
+          ];
+        case 'template-diagonal-tech':
+          return [
+            { x: 0, y: 0, w: 36, h: 48, title: '核心高亮指标 · 紫盖', type: 'line', isDiagonalTech: true },
+            { x: 38, y: 0, w: 62, h: 48, title: '技术切角看板 · 趋势', type: 'bar', isDiagonalTech: true },
+            { x: 0, y: 52, w: 36, h: 48, title: '高亮彩色重点卡', type: 'donut', isDiagonalTech: true, isFilledColor: true },
+            { x: 38, y: 52, w: 30, h: 48, title: '细分转化分析', type: 'table', isDiagonalTech: true },
+            { x: 70, y: 52, w: 30, h: 48, title: '长期健康度指数', type: 'line', isDiagonalTech: true }
+          ];
+        case 'template-capsule-dock':
+          return [
+            { x: 0, y: 0, w: 49, h: 48, title: '胶囊微光舱 · 模块 A', type: 'line', isCapsuleGlow: true },
+            { x: 51, y: 0, w: 49, h: 48, title: '胶囊微光舱 · 模块 B', type: 'bar', isCapsuleGlow: true },
+            { x: 0, y: 52, w: 49, h: 48, title: '胶囊微光舱 · 模块 C', type: 'donut', isCapsuleGlow: true },
+            { x: 51, y: 52, w: 49, h: 48, title: '胶囊微光舱 · 模块 D', type: 'table', isCapsuleGlow: true }
+          ];
+        case 'template-floating-island':
+          return [
+            { x: 0, y: 0, w: 38, h: 48, title: '波浪插画图表 1', type: 'wave-art-1', isIsland: true },
+            { x: 40, y: 0, w: 60, h: 100, title: '右侧主报表分屏 · Area Title', type: 'line', isIsland: true, isSplitPanel: true },
+            { x: 0, y: 52, w: 38, h: 48, title: '波浪插画图表 2', type: 'wave-art-2', isIsland: true }
+          ];
+
+        default:
+          return [{ x: 0, y: 0, w: 100, h: 100, title: '标准可视化容器', type: 'line' }];
+      }
+    }
+
+    function renderPreview() {
+      const viewport = document.getElementById('canvasViewport');
+      const sidebar = document.getElementById('previewSidebar');
+      const kpiRow = document.getElementById('previewKpiRow');
+      const visualGrid = document.getElementById('previewVisualGrid');
+      const footer = document.getElementById('previewFooter');
+      const tabsContainer = document.getElementById('headerTabsContainer');
+      const headerTitle = document.getElementById('headerTitlePlaceholder');
+      const activeNav = document.getElementById('sidebarActiveNav');
+
+      // 1. Dynamic Aspect Ratio & Canvas Background
+      viewport.style.aspectRatio = `${state.width} / ${state.height}`;
+      viewport.style.backgroundColor = state.colors.canvasBg;
+
+      // Handle custom template specific background styling
+      if (state.layout === 'template-diagonal-tech') {
+        viewport.style.background = `linear-gradient(135deg, ${state.colors.canvasBg} 85%, #4f46e5 85.1%, #4f46e5 88%, ${state.colors.canvasBg} 88.1%)`;
+      } else if (state.layout === 'template-capsule-dock') {
+        viewport.style.background = `radial-gradient(circle at 10% 20%, rgba(99,102,241,0.15) 0%, transparent 60%), ${state.colors.canvasBg}`;
+      } else if (state.layout === 'template-floating-island') {
+        viewport.style.background = `linear-gradient(90deg, #E2E8F0 0%, #E2E8F0 72%, #FED7AA 72.1%, #FED7AA 100%)`;
+      }
+
+      // 2. Sidebar Layout
+      if (state.sidebar === 'none') {
+        sidebar.classList.add('hidden');
+      } else {
+        sidebar.classList.remove('hidden');
+        sidebar.style.backgroundColor = state.colors.sidebarBg;
+        sidebar.style.borderColor = state.colors.border;
+        
+        if (state.sidebar === 'compact') {
+          sidebar.style.width = '8%';
+          sidebar.className = sidebar.className.replace(/rounded-[a-z0-9]+/g, '');
+        } else if (state.sidebar === 'floating') {
+          sidebar.style.width = '7%';
+          sidebar.style.margin = '8px';
+          sidebar.style.borderRadius = '9999px';
+          sidebar.style.height = 'calc(100% - 16px)';
+        } else if (state.sidebar === 'wave') {
+          sidebar.style.width = '18%';
+          sidebar.style.borderRadius = '0 24px 24px 0';
+        } else {
+          sidebar.style.width = '18%';
+          sidebar.style.margin = '0';
+          sidebar.style.borderRadius = '0';
+          sidebar.style.height = '100%';
+        }
+
+        if (activeNav) {
+          activeNav.style.borderColor = state.colors.accent;
+        }
+      }
+
+      // Sidebar Brand / Logo
+      const logoImg = document.getElementById('sidebarLogoImg');
+      const logoText = document.getElementById('sidebarLogoText');
+      const logoHolder = document.getElementById('sidebarLogoHolder');
+      if (logoHolder) {
+        logoHolder.style.backgroundColor = state.colors.accent;
+        logoHolder.style.color = state.colors.isDark ? '#000000' : '#FFFFFF';
+      }
+      if (state.logoDataUrl) {
+        logoImg.src = state.logoDataUrl;
+        logoImg.classList.remove('hidden');
+        logoText.classList.add('hidden');
+      } else {
+        logoImg.classList.add('hidden');
+        logoText.classList.remove('hidden');
+      }
+
+      // 3. Chrome Header
+      if (headerTitle) {
+        headerTitle.style.backgroundColor = state.colors.isDark ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.15)';
+      }
+      tabsContainer.innerHTML = '';
+      if (state.chromeTabStyle !== 'none') {
+        for (let i = 0; i < state.chromeTabsCount; i++) {
+          const tab = document.createElement('div');
+          if (state.chromeTabStyle === 'underline') {
+            tab.className = `h-2 w-7 rounded-t-xs ${i === 0 ? 'border-b-2' : 'opacity-30'}`;
+            tab.style.backgroundColor = i === 0 ? `${state.colors.accent}30` : (state.colors.isDark ? '#4B5563' : '#CBD5E1');
+            if (i === 0) tab.style.borderColor = state.colors.accent;
+          } else if (state.chromeTabStyle === 'pills') {
+            tab.className = `h-2 w-6 rounded-full ${i === 0 ? 'opacity-100' : 'opacity-25'}`;
+            tab.style.backgroundColor = i === 0 ? state.colors.accent : (state.colors.isDark ? '#4B5563' : '#CBD5E1');
+          } else if (state.chromeTabStyle === 'minimal') {
+            tab.className = `w-1.5 h-1.5 rounded-full ${i === 0 ? 'opacity-100' : 'opacity-30'}`;
+            tab.style.backgroundColor = i === 0 ? state.colors.accent : (state.colors.isDark ? '#4B5563' : '#94A3B8');
+          }
+          tabsContainer.appendChild(tab);
+        }
+      }
+
+      // 4. Footer Strip
+      if (state.showFooter) {
+        footer.classList.remove('hidden');
+        footer.classList.add('flex');
+        footer.style.backgroundColor = state.colors.border;
+      } else {
+        footer.classList.add('hidden');
+        footer.classList.remove('flex');
+      }
+
+      // 5. KPI Cards Row
+      kpiRow.innerHTML = '';
+      if (state.kpiCount > 0) {
+        kpiRow.style.display = 'grid';
+        kpiRow.style.gridTemplateColumns = `repeat(${state.kpiCount}, minmax(0, 1fr))`;
+        kpiRow.style.gap = `${Math.max(4, Math.round(state.spacing / 3.5))}px`;
+
+        const kpiShadow = getComputedShadow(true);
+        const cardRadius = `${Math.max(2, Math.round(state.radius / 1.5))}px`;
+        const mockTitles = ['总营业额 (ARR)', '线索商机转化', '月经常性收入', '客户满意度 (CSAT)', '净利润率', '单笔订单客单价'];
+        const mockValues = ['¥28,450,000', '4.32%', '¥1,428,000', '98.6%', '32.4%', '¥1,850'];
+        const mockDeltas = ['+18.4%', '+1.2%', '+14.6%', '+3.1%', '-0.8%', '+8.2%'];
+
+        for (let i = 0; i < state.kpiCount; i++) {
+          const kpi = document.createElement('div');
+          kpi.className = 'p-1.5 flex flex-col justify-between transition-all relative overflow-hidden';
+          kpi.style.backgroundColor = state.colors.cardBg;
+          kpi.style.borderRadius = cardRadius;
+          kpi.style.boxShadow = kpiShadow;
+          kpi.style.border = `1px solid ${state.colors.border}`;
+          kpi.style.minHeight = '32px';
+
+          // Decorative Top Cap
+          if (state.kpiStyle === 'accent-top' || state.layout === '3d-double-cap' || state.layout === 'template-diagonal-tech') {
+            const cap = document.createElement('div');
+            cap.className = 'absolute top-0 left-0 right-0 h-1';
+            cap.style.backgroundColor = i === 1 ? state.colors.accent : (state.colors.isDark ? '#6366f1' : '#818cf8');
+            kpi.appendChild(cap);
+          }
+
+          if (state.showMockData) {
+            kpi.innerHTML += `
+              <div class="flex justify-between items-center text-[7px] font-semibold tracking-wider" style="color: ${state.colors.isDark ? '#9CA3AF' : '#64748B'}">
+                <span class="truncate">${mockTitles[i % mockTitles.length]}</span>
+                <span class="${mockDeltas[i].startsWith('+') ? 'text-emerald-400' : 'text-rose-400'} font-bold">${mockDeltas[i]}</span>
+              </div>
+              <div class="text-[11px] font-extrabold tracking-tight leading-none mt-0.5" style="color: ${state.colors.text};">${mockValues[i]}</div>
+              <div class="w-full rounded-full h-1 mt-1 overflow-hidden" style="background-color: ${state.colors.isDark ? '#374151' : '#F1F5F9'}">
+                <div class="h-full rounded-full" style="width: ${55 + i * 8}%; background-color: ${state.colors.accent}"></div>
+              </div>
+            `;
+          } else {
+            kpi.innerHTML += `
+              <div class="h-1.5 w-7 rounded-xs mb-1" style="background-color: ${state.colors.isDark ? '#374151' : '#E2E8F0'}"></div>
+              <div class="h-2.5 w-12 rounded-xs" style="background-color: ${state.colors.isDark ? '#4B5563' : '#CBD5E1'}"></div>
+            `;
+          }
+          kpiRow.appendChild(kpi);
+        }
+      } else {
+        kpiRow.style.display = 'none';
+      }
+
+      // 6. Visual Grid Arrangement
+      visualGrid.innerHTML = '';
+      const visualShadow = getComputedShadow(false);
+      const cardRadius = `${Math.max(2, Math.round(state.radius / 1.5))}px`;
+      const boxes = getLayoutBoxes(state.layout);
+
+      boxes.forEach((box) => {
+        const card = document.createElement('div');
+        card.className = 'absolute p-1.5 flex flex-col justify-between transition-all overflow-hidden';
+        card.style.left = `${box.x}%`;
+        card.style.top = `${box.y}%`;
+        card.style.width = `${box.w}%`;
+        card.style.height = `${box.h}%`;
+        card.style.backgroundColor = state.colors.cardBg;
+        card.style.borderRadius = cardRadius;
+        card.style.boxShadow = visualShadow;
+        card.style.border = `1px solid ${state.colors.border}`;
+
+        // 3D / Perspective / Dimensional classes
+        if (box.isNeumorphic) {
+          card.classList.add('card-neumorphic');
+        } else if (box.isIsometric) {
+          card.style.transform = 'perspective(600px) rotateX(10deg) rotateZ(-2deg)';
+        } else if (box.isStepped) {
+          card.classList.add(`card-stepped-${box.isStepped}`);
+        } else if (box.isDoubleCap) {
+          card.style.borderTop = `3px solid ${state.colors.accent}`;
+        }
+
+        // Bauhaus template special colored action cards (参考图 8)
+        if (box.isBauhausAction === 'red') {
+          card.style.backgroundColor = '#EF4444';
+          card.style.borderColor = '#DC2626';
+          card.style.color = '#FFFFFF';
+        } else if (box.isBauhausAction === 'cyan') {
+          card.style.backgroundColor = '#38BDF8';
+          card.style.borderColor = '#0EA5E9';
+          card.style.color = '#FFFFFF';
+        } else if (box.isBauhausAction === 'dark') {
+          card.style.backgroundColor = '#0F172A';
+          card.style.borderColor = '#020617';
+          card.style.color = '#FFFFFF';
+        }
+
+        // Line-based Area Title styles (参考图 5/6/8)
+        if (box.isLineStyle) {
+          card.style.border = 'none';
+          card.style.borderBottom = `1px solid ${state.colors.border}`;
+          card.style.borderRadius = '0';
+          card.style.boxShadow = 'none';
+        }
+
+        if (state.showMockData) {
+          card.innerHTML = `
+            <div class="flex items-center justify-between border-b pb-0.5 mb-1" style="border-color: ${state.colors.border}">
+              <span class="text-[8px] font-bold truncate" style="color: ${box.isBauhausAction ? '#FFFFFF' : state.colors.text}">${box.title}</span>
+              <span class="text-[7px] text-slate-400">•••</span>
+            </div>
+            <div class="flex-1 flex items-center justify-center p-0.5 min-h-0">
+              ${renderMockChartSVG(box.type, state.colors.accent, state.colors.isDark, box.isBauhausAction)}
+            </div>
+          `;
+        } else {
+          // Clean wireframe blueprint representation
+          if (box.isBauhausAction) {
+            card.innerHTML = `
+              <div class="w-full h-full flex flex-col items-center justify-center space-y-1">
+                <div class="w-3.5 h-3.5 rounded-full bg-white/30 flex items-center justify-center text-white text-[8px] font-bold">★</div>
+                <div class="h-1.5 w-8 bg-white/40 rounded"></div>
+              </div>
+            `;
+          } else {
+            card.innerHTML = `
+              <div class="h-1.5 w-16 rounded-xs mb-1" style="background-color: ${state.colors.isDark ? '#374151' : '#E2E8F0'}"></div>
+              <div class="flex-1 rounded-sm border border-dashed flex items-center justify-center" style="border-color: ${state.colors.border}; background-color: ${state.colors.isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)'}">
+                <div class="w-5 h-5 rounded-full flex items-center justify-center" style="background-color: ${state.colors.isDark ? '#374151' : '#E2E8F0'}">
+                  <div class="w-2 h-2 rounded-xs" style="background-color: ${state.colors.accent}"></div>
+                </div>
+              </div>
+            `;
+          }
+        }
+        visualGrid.appendChild(card);
+      });
+
+      // Update Spec summary
+      updateSummaryTable();
+    }
+
+    function renderMockChartSVG(type, accentColor, isDark, isBauhausAction) {
+      if (isBauhausAction) {
+        return `
+          <div class="flex flex-col items-center justify-center space-y-1 text-white">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span class="text-[7px] font-bold tracking-wider uppercase">快捷动作卡</span>
+          </div>
+        `;
+      }
+      if (type === 'filter') {
+        return `
+          <div class="w-full flex items-center space-x-1.5 text-[7px] overflow-hidden">
+            <span class="px-1.5 py-0.5 rounded font-bold" style="background-color: ${accentColor}; color: ${isDark ? '#000' : '#fff'};">全部财年 FY2026</span>
+            <span class="px-1.5 py-0.5 rounded border ${isDark ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}">区域：大中华区</span>
+            <span class="px-1.5 py-0.5 rounded border ${isDark ? 'border-slate-700 text-slate-300' : 'border-slate-200 text-slate-600'}">重点企业大客户</span>
+          </div>
+        `;
+      }
+      if (type === 'bar') {
+        return `
+          <svg class="w-full h-full max-h-14" viewBox="0 0 100 36">
+            <rect x="6" y="14" width="8" height="22" rx="1.5" fill="${accentColor}" opacity="0.8"/>
+            <rect x="22" y="6" width="8" height="30" rx="1.5" fill="${accentColor}"/>
+            <rect x="38" y="18" width="8" height="18" rx="1.5" fill="${accentColor}" opacity="0.6"/>
+            <rect x="54" y="10" width="8" height="26" rx="1.5" fill="${accentColor}" opacity="0.95"/>
+            <rect x="70" y="4" width="8" height="32" rx="1.5" fill="${accentColor}"/>
+            <rect x="86" y="15" width="8" height="21" rx="1.5" fill="${accentColor}" opacity="0.75"/>
+          </svg>
+        `;
+      } else if (type === 'line') {
+        return `
+          <svg class="w-full h-full max-h-14" viewBox="0 0 100 36">
+            <path d="M 0 32 Q 25 8, 50 20 T 100 4 L 100 36 L 0 36 Z" fill="${accentColor}" opacity="${isDark ? '0.25' : '0.15'}"/>
+            <path d="M 0 32 Q 25 8, 50 20 T 100 4" fill="none" stroke="${accentColor}" stroke-width="2.2" stroke-linecap="round"/>
+            <circle cx="50" cy="20" r="2.5" fill="#ffffff" stroke="${accentColor}" stroke-width="1.5"/>
+            <circle cx="100" cy="4" r="2.5" fill="#ffffff" stroke="${accentColor}" stroke-width="1.5"/>
+          </svg>
+        `;
+      } else if (type === 'donut') {
+        return `
+          <svg class="w-10 h-10" viewBox="0 0 36 36">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="${isDark ? '#374151' : '#E2E8F0'}" stroke-width="4"/>
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831" fill="none" stroke="${accentColor}" stroke-width="4" stroke-dasharray="68, 100"/>
+          </svg>
+        `;
+      } else if (type === 'wave-art-1' || type === 'wave-art-2') {
+        return `
+          <svg class="w-full h-full max-h-14 rounded overflow-hidden" viewBox="0 0 100 40">
+            <path d="M0,25 C30,10 50,40 100,15 L100,40 L0,40 Z" fill="#FB923C" opacity="0.8"/>
+            <path d="M0,32 C20,20 60,35 100,22 L100,40 L0,40 Z" fill="#EA580C"/>
+          </svg>
+        `;
+      } else {
+        return `
+          <div class="w-full space-y-1">
+            <div class="h-1.5 w-full rounded" style="background-color: ${isDark ? '#374151' : '#E2E8F0'}"></div>
+            <div class="h-1.5 w-5/6 rounded" style="background-color: ${isDark ? '#272F3E' : '#F1F5F9'}"></div>
+            <div class="h-1.5 w-4/6 rounded" style="background-color: ${isDark ? '#272F3E' : '#F1F5F9'}"></div>
+          </div>
+        `;
+      }
+    }
+
+    function updateSummaryTable() {
+      const layoutLabel = LAYOUT_NAMES[state.layout] || state.layout;
+      
+      document.getElementById('summaryTitle').textContent = layoutLabel;
+      document.getElementById('summaryCategoryBadge').textContent = state.layoutCategory;
+      document.getElementById('resolutionBadge').textContent = `${state.width} × ${state.height}`;
+      document.getElementById('summaryCanvas').textContent = `${state.width} × ${state.height}`;
+      document.getElementById('summaryPreset').textContent = state.presetName;
+      document.getElementById('summaryKpi').textContent = `${state.kpiCount} 张指标卡`;
+      
+      const sidebarNameMap = {
+        'full': '完整左侧导航栏',
+        'compact': '紧凑图标微型栏',
+        'floating': '独立悬浮胶囊舱',
+        'wave': '有机波浪曲线侧栏',
+        'none': '无侧边栏 (通栏)'
+      };
+      document.getElementById('summarySidebar').textContent = sidebarNameMap[state.sidebar] || state.sidebar;
+      document.getElementById('summaryChrome').textContent = `${state.chromeTabStyle === 'underline' ? '下划线高亮' : '胶囊药丸'}, ${state.chromeTabsCount} 项导航`;
+      document.getElementById('summaryFooter').textContent = state.showFooter ? '已启用标牌' : '未启用 (—)';
+      document.getElementById('headerSubtitle').textContent = `Power BI · ${state.presetName} · ${layoutLabel}`;
+
+      // Accordion headers summary tags
+      document.getElementById('accSummaryGrid').textContent = `${state.width} × ${state.height} · ${layoutLabel}`;
+      document.getElementById('accSummaryChrome').textContent = `顶栏 · ${sidebarNameMap[state.sidebar] || state.sidebar}`;
+      document.getElementById('accSummaryKpi').textContent = `${state.kpiCount} 张指标卡`;
+
+      const sidesActive = [];
+      if (state.shadowSides.down) sidesActive.push('向下');
+      if (state.shadowSides.up) sidesActive.push('向上');
+      if (state.shadowSides.left) sidesActive.push('向左');
+      if (state.shadowSides.right) sidesActive.push('向右');
+      const sideText = sidesActive.length > 0 ? sidesActive.join('+') : '居中微散';
+
+      document.getElementById('accSummaryStyle').textContent = `间距 ${state.spacing} · 圆角 ${state.radius} · 投影 ×${state.shadowIntensity} ${sideText}`;
+      document.getElementById('accSummaryColors').textContent = state.presetName;
+    }
+
+    function initEventListeners() {
+      // 1. Accordion Toggles
+      document.querySelectorAll('.accordion-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const targetId = btn.getAttribute('data-target');
+          const panel = document.getElementById(targetId);
+          const chevron = btn.querySelector('.accordion-chevron');
+          const isOpen = !panel.classList.contains('hidden');
+
+          if (isOpen) {
+            panel.classList.add('hidden');
+            chevron.classList.remove('rotate-180');
+          } else {
+            panel.classList.remove('hidden');
+            chevron.classList.add('rotate-180');
+          }
+        });
+      });
+
+      // 2. Layout Category Tabs (经典栅格 / 线条极简 / 3D空间透视 / 商务潮流定制)
+      document.querySelectorAll('.layout-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.layout-tab-btn').forEach(b => {
+            b.classList.remove('active', 'bg-white', 'text-slate-800', 'shadow-xs', 'font-semibold');
+            b.classList.add('text-slate-500', 'font-medium');
+          });
+          btn.classList.add('active', 'bg-white', 'text-slate-800', 'shadow-xs', 'font-semibold');
+          btn.classList.remove('text-slate-500', 'font-medium');
+
+          const tabKey = btn.getAttribute('data-tab');
+          document.querySelectorAll('.layout-tab-content').forEach(c => c.classList.add('hidden'));
+          const targetContent = document.getElementById(`tab-${tabKey}`);
+          if (targetContent) targetContent.classList.remove('hidden');
+        });
+      });
+
+      // 3. Canvas Size Preset Dropdown & Inputs
+      const canvasPresetSelect = document.getElementById('canvasPresetSelect');
+      const inputW = document.getElementById('inputCustomWidth');
+      const inputH = document.getElementById('inputCustomHeight');
+      const aspectLockBtn = document.getElementById('aspectRatioLockBtn');
+
+      aspectLockBtn.addEventListener('click', () => {
+        state.aspectLocked = !state.aspectLocked;
+        if (state.aspectLocked) {
+          aspectLockBtn.classList.add('text-emerald-600', 'bg-emerald-50');
+          aspectLockBtn.classList.remove('text-slate-400', 'bg-slate-100');
+          showToast('已锁定 16:9 黄金长宽比例');
+        } else {
+          aspectLockBtn.classList.remove('text-emerald-600', 'bg-emerald-50');
+          aspectLockBtn.classList.add('text-slate-400', 'bg-slate-100');
+          showToast('已解除长宽比限制，可任意输入宽高');
+        }
+      });
+
+      canvasPresetSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val !== 'custom') {
+          const [w, h] = val.split('x').map(Number);
+          state.width = w;
+          state.height = h;
+          inputW.value = w;
+          inputH.value = h;
+          renderPreview();
+        }
+      });
+
+      // Custom Width & Height Inputs
+      inputW.addEventListener('input', (e) => {
+        const w = Math.max(300, Math.min(4096, Number(e.target.value) || 1600));
+        state.width = w;
+        if (state.aspectLocked) {
+          const h = Math.round((w * 9) / 16);
+          state.height = h;
+          inputH.value = h;
+        }
+        canvasPresetSelect.value = 'custom';
+        renderPreview();
+      });
+
+      inputH.addEventListener('input', (e) => {
+        const h = Math.max(300, Math.min(4096, Number(e.target.value) || 900));
+        state.height = h;
+        if (state.aspectLocked) {
+          const w = Math.round((h * 16) / 9);
+          state.width = w;
+          inputW.value = w;
+        }
+        canvasPresetSelect.value = 'custom';
+        renderPreview();
+      });
+
+      // 4. Arrangement Selection (Supports all categories)
+      document.querySelectorAll('.layout-card-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.layout-card-btn').forEach(b => {
+            b.classList.remove('active', 'border-emerald-500', 'ring-2', 'ring-emerald-500/20', 'bg-brand-50/70');
+            b.classList.add('border-slate-200', 'bg-white');
+            const label = b.querySelector('span');
+            if (label) {
+              label.classList.remove('font-bold', 'text-emerald-800');
+              label.classList.add('font-medium', 'text-slate-700');
+            }
+          });
+
+          btn.classList.add('active', 'border-emerald-500', 'ring-2', 'ring-emerald-500/20', 'bg-brand-50/70');
+          btn.classList.remove('border-slate-200', 'bg-white');
+          const activeLabel = btn.querySelector('span');
+          if (activeLabel) {
+            activeLabel.classList.add('font-bold', 'text-emerald-800');
+            activeLabel.classList.remove('font-medium', 'text-slate-700');
+          }
+
+          state.layout = btn.getAttribute('data-layout');
+          state.layoutCategory = btn.getAttribute('data-category') || '经典栅格';
+
+          // Automatic template preset sync
+          if (state.layout === 'template-wave-sidebar') {
+            state.sidebar = 'wave';
+            document.getElementById('sidebarSelect').value = 'wave';
+          } else if (state.layout === 'template-capsule-dock' || state.layout === 'template-floating-island') {
+            state.sidebar = 'floating';
+            document.getElementById('sidebarSelect').value = 'floating';
+          }
+
+          renderPreview();
+        });
+      });
+
+      // 5. Color Preset Selection (18 Choices)
+      document.querySelectorAll('.preset-card-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.preset-card-btn').forEach(b => {
+            b.classList.remove('active', 'border-2', 'border-slate-900', 'ring-2', 'ring-slate-900/10');
+            b.classList.add('border-slate-200');
+            const label = b.querySelector('span');
+            if (label) {
+              label.classList.remove('font-bold', 'text-slate-900');
+              label.classList.add('font-medium', 'text-slate-700');
+            }
+          });
+
+          btn.classList.add('active', 'border-2', 'border-slate-900', 'ring-2', 'ring-slate-900/10');
+          btn.classList.remove('border-slate-200');
+          const label = btn.querySelector('span');
+          if (label) {
+            label.classList.add('font-bold', 'text-slate-900');
+            label.classList.remove('font-medium', 'text-slate-700');
+          }
+
+          const key = btn.getAttribute('data-preset');
+          const p = PRESET_COLLECTION[key];
+          if (p) {
+            state.presetKey = key;
+            state.presetName = p.name;
+            state.colors = { ...p };
+
+            // Sync pickers
+            document.getElementById('colorCanvas').value = p.canvasBg;
+            document.getElementById('colorCard').value = p.cardBg;
+            document.getElementById('colorAccent').value = p.accent;
+            document.getElementById('colorSidebar').value = p.sidebarBg;
+
+            renderPreview();
+          }
+        });
+      });
+
+      // Custom Color Inputs
+      document.getElementById('colorCanvas').addEventListener('input', (e) => {
+        state.colors.canvasBg = e.target.value;
+        state.presetName = '自定义配色 (Custom)';
+        renderPreview();
+      });
+      document.getElementById('colorCard').addEventListener('input', (e) => {
+        state.colors.cardBg = e.target.value;
+        state.presetName = '自定义配色 (Custom)';
+        renderPreview();
+      });
+      document.getElementById('colorAccent').addEventListener('input', (e) => {
+        state.colors.accent = e.target.value;
+        state.presetName = '自定义配色 (Custom)';
+        renderPreview();
+      });
+      document.getElementById('colorSidebar').addEventListener('input', (e) => {
+        state.colors.sidebarBg = e.target.value;
+        state.presetName = '自定义配色 (Custom)';
+        renderPreview();
+      });
+
+      // 6. Chrome Controls
+      document.getElementById('sidebarSelect').addEventListener('change', (e) => {
+        state.sidebar = e.target.value;
+        renderPreview();
+      });
+
+      document.getElementById('chromeTabSelect').addEventListener('change', (e) => {
+        state.chromeTabStyle = e.target.value;
+        renderPreview();
+      });
+
+      document.querySelectorAll('.tab-count-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-count-btn').forEach(b => {
+            b.classList.remove('bg-emerald-500', 'text-white');
+            b.classList.add('text-slate-600');
+          });
+          btn.classList.add('bg-emerald-500', 'text-white');
+          btn.classList.remove('text-slate-600');
+          state.chromeTabsCount = Number(btn.getAttribute('data-count'));
+          renderPreview();
+        });
+      });
+
+      document.getElementById('footerToggle').addEventListener('change', (e) => {
+        state.showFooter = e.target.checked;
+        renderPreview();
+      });
+
+      // 7. KPI Card Controls
+      document.querySelectorAll('.kpi-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.kpi-btn').forEach(b => {
+            b.classList.remove('bg-emerald-500', 'text-white', 'border-emerald-500', 'shadow-xs');
+            b.classList.add('bg-white', 'text-slate-700', 'border-slate-200');
+          });
+          btn.classList.add('bg-emerald-500', 'text-white', 'border-emerald-500', 'shadow-xs');
+          btn.classList.remove('bg-white', 'text-slate-700', 'border-slate-200');
+          state.kpiCount = Number(btn.getAttribute('data-kpi'));
+          renderPreview();
+        });
+      });
+
+      document.getElementById('kpiStyleSelect').addEventListener('change', (e) => {
+        state.kpiStyle = e.target.value;
+        renderPreview();
+      });
+
+      // 8. Style Controls: Spacing & Radius
+      document.getElementById('inputSpacing').addEventListener('input', (e) => {
+        state.spacing = Math.max(0, Number(e.target.value) || 0);
+        renderPreview();
+      });
+      document.getElementById('inputRadius').addEventListener('input', (e) => {
+        state.radius = Math.max(0, Number(e.target.value) || 0);
+        renderPreview();
+      });
+
+      // Card Shadow Toggle
+      const shadowToggle = document.getElementById('shadowToggle');
+      const shadowGroup = document.getElementById('shadowControlsGroup');
+      shadowToggle.addEventListener('change', (e) => {
+        state.shadowEnabled = e.target.checked;
+        if (state.shadowEnabled) {
+          shadowGroup.classList.remove('opacity-40', 'pointer-events-none');
+        } else {
+          shadowGroup.classList.add('opacity-40', 'pointer-events-none');
+        }
+        renderPreview();
+      });
+
+      // Intensity Stepper
+      const intensityVal = document.getElementById('intensityVal');
+      document.getElementById('intensityDecBtn').addEventListener('click', () => {
+        if (state.shadowIntensity > 1) {
+          state.shadowIntensity--;
+          intensityVal.textContent = state.shadowIntensity;
+          renderPreview();
+        }
+      });
+      document.getElementById('intensityIncBtn').addEventListener('click', () => {
+        if (state.shadowIntensity < 5) {
+          state.shadowIntensity++;
+          intensityVal.textContent = state.shadowIntensity;
+          renderPreview();
+        }
+      });
+
+      // Directional buttons
+      document.querySelectorAll('.side-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const side = btn.getAttribute('data-side');
+          state.shadowSides[side] = !state.shadowSides[side];
+          if (state.shadowSides[side]) {
+            btn.classList.add('bg-[#18181b]', 'text-white', 'shadow-xs');
+            btn.classList.remove('text-slate-700');
+          } else {
+            btn.classList.remove('bg-[#18181b]', 'text-white', 'shadow-xs');
+            btn.classList.add('text-slate-700');
+          }
+          renderPreview();
+        });
+      });
+
+      // Shadow apply buttons
+      const applyKpisBtn = document.getElementById('applyKpisBtn');
+      const applyVisualsBtn = document.getElementById('applyVisualsBtn');
+      applyKpisBtn.addEventListener('click', () => {
+        state.shadowApplyKPIs = !state.shadowApplyKPIs;
+        if (state.shadowApplyKPIs) {
+          applyKpisBtn.classList.add('bg-[#18181b]', 'text-white');
+          applyKpisBtn.classList.remove('bg-slate-200', 'text-slate-600');
+        } else {
+          applyKpisBtn.classList.remove('bg-[#18181b]', 'text-white');
+          applyKpisBtn.classList.add('bg-slate-200', 'text-slate-600');
+        }
+        renderPreview();
+      });
+      applyVisualsBtn.addEventListener('click', () => {
+        state.shadowApplyVisuals = !state.shadowApplyVisuals;
+        if (state.shadowApplyVisuals) {
+          applyVisualsBtn.classList.add('bg-[#18181b]', 'text-white');
+          applyVisualsBtn.classList.remove('bg-slate-200', 'text-slate-600');
+        } else {
+          applyVisualsBtn.classList.remove('bg-[#18181b]', 'text-white');
+          applyVisualsBtn.classList.add('bg-slate-200', 'text-slate-600');
+        }
+        renderPreview();
+      });
+
+      // 9. Logo Upload & Remove
+      const logoInput = document.getElementById('logoFileInput');
+      const logoRow = document.getElementById('logoPreviewRow');
+      const logoThumb = document.getElementById('logoThumbImg');
+      const logoName = document.getElementById('logoFileName');
+
+      logoInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            state.logoDataUrl = ev.target.result;
+            state.logoFileName = file.name;
+            logoThumb.src = ev.target.result;
+            logoName.textContent = file.name;
+            logoRow.classList.remove('hidden');
+            logoRow.classList.add('flex');
+            document.getElementById('accSummaryLogo').textContent = file.name;
+            renderPreview();
+            showToast('已成功载入企业 Logo 并嵌入导航栏');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      document.getElementById('removeLogoBtn').addEventListener('click', () => {
+        state.logoDataUrl = null;
+        state.logoFileName = '';
+        logoInput.value = '';
+        logoRow.classList.add('hidden');
+        logoRow.classList.remove('flex');
+        document.getElementById('accSummaryLogo').textContent = '未选择文件 — 支持 PNG, JPG 或 SVG';
+        renderPreview();
+        showToast('已移除徽标图片');
+      });
+
+      // 10. Top Mock Preview Toggle
+      const toggleMockBtn = document.getElementById('toggleMockPreviewBtn');
+      const previewIndicator = document.getElementById('mockDataIndicator');
+      toggleMockBtn.addEventListener('click', () => {
+        state.showMockData = !state.showMockData;
+        if (state.showMockData) {
+          toggleMockBtn.classList.add('bg-emerald-50', 'text-emerald-700', 'border-emerald-300');
+          previewIndicator.classList.remove('opacity-0');
+          document.getElementById('previewButtonLabel').textContent = '切换线框模式';
+        } else {
+          toggleMockBtn.classList.remove('bg-emerald-50', 'text-emerald-700', 'border-emerald-300');
+          previewIndicator.classList.add('opacity-0');
+          document.getElementById('previewButtonLabel').textContent = '模拟真实图表';
+        }
+        renderPreview();
+      });
+
+      // Reset Button
+      document.getElementById('resetBtn').addEventListener('click', () => {
+        state.width = 1600;
+        state.height = 900;
+        state.aspectLocked = true;
+        state.presetKey = 'charcoal';
+        state.presetName = '炭黑深色 (Charcoal)';
+        state.layout = 'filter+2+1';
+        state.layoutCategory = '经典栅格';
+        state.sidebar = 'full';
+        state.chromeTabStyle = 'underline';
+        state.chromeTabsCount = 5;
+        state.showFooter = false;
+        state.kpiCount = 4;
+        state.kpiStyle = 'minimal';
+        state.spacing = 20;
+        state.radius = 4;
+        state.shadowEnabled = true;
+        state.shadowIntensity = 1;
+        state.shadowSides = { up: false, down: true, left: false, right: false };
+        state.shadowApplyKPIs = true;
+        state.shadowApplyVisuals = true;
+        state.colors = { ...PRESET_COLLECTION['charcoal'] };
+        state.showMockData = false;
+
+        inputW.value = 1600;
+        inputH.value = 900;
+        canvasPresetSelect.value = '1600x900';
+        document.getElementById('inputSpacing').value = 20;
+        document.getElementById('inputRadius').value = 4;
+        shadowToggle.checked = true;
+        intensityVal.textContent = 1;
+
+        renderPreview();
+        showToast('已恢复默认配置：炭黑深色 · 经典网格 Filter + 2+1');
+      });
+
+      // 11. Generate Background Modal & Export Triggers
+      const exportModal = document.getElementById('exportModal');
+      document.getElementById('generateBtn').addEventListener('click', () => {
+        exportModal.classList.remove('hidden');
+        setTimeout(() => {
+          exportModal.classList.remove('opacity-0');
+          exportModal.querySelector('div').classList.remove('scale-95');
+        }, 10);
+      });
+
+      const closeModal = () => {
+        exportModal.classList.add('opacity-0');
+        exportModal.querySelector('div').classList.add('scale-95');
+        setTimeout(() => exportModal.classList.add('hidden'), 200);
+      };
+
+      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+      exportModal.addEventListener('click', (e) => {
+        if (e.target === exportModal) closeModal();
+      });
+
+      // Window controls
+      document.getElementById('minimizeWindowBtn').addEventListener('click', () => showToast('Power BI 背景设计工作站运行中'));
+      document.getElementById('closeWindowBtn').addEventListener('click', () => showToast('请关闭浏览器标签页以离开设计器'));
+
+      // Export handlers
+      document.getElementById('downloadPng1xBtn').addEventListener('click', () => exportPNG(1));
+      document.getElementById('downloadPng2xBtn').addEventListener('click', () => exportPNG(2));
+      document.getElementById('downloadSvgBtn').addEventListener('click', () => exportSVG(false));
+      document.getElementById('copySvgBtn').addEventListener('click', () => exportSVG(true));
+      document.getElementById('downloadThemeBtn').addEventListener('click', exportPowerBiThemeJson);
+    }
+
+    function exportPNG(scale = 1) {
+      const canvas = document.getElementById('exportCanvas');
+      const ctx = canvas.getContext('2d');
+
+      const W = state.width * scale;
+      const H = state.height * scale;
+      canvas.width = W;
+      canvas.height = H;
+
+      // 1. Draw Canvas Background
+      ctx.fillStyle = state.colors.canvasBg;
+      ctx.fillRect(0, 0, W, H);
+
+      // Template Specific Background Elements
+      if (state.layout === 'template-bauhaus-memphis') {
+        // Draw Memphis / Bauhaus colored top banner (参考图 8)
+        const bannerHeight = 24 * scale;
+        const bannerGradient = ctx.createLinearGradient(0, 0, W, 0);
+        bannerGradient.addColorStop(0, '#EF4444');
+        bannerGradient.addColorStop(0.3, '#F59E0B');
+        bannerGradient.addColorStop(0.6, '#10B981');
+        bannerGradient.addColorStop(1, '#3B82F6');
+        ctx.fillStyle = bannerGradient;
+        ctx.fillRect(0, 0, W, bannerHeight);
+      } else if (state.layout === 'template-diagonal-tech') {
+        // Top right diagonal accent cut (参考图 9)
+        ctx.fillStyle = '#4f46e5';
+        ctx.beginPath();
+        ctx.moveTo(W - 80 * scale, 0);
+        ctx.lineTo(W, 0);
+        ctx.lineTo(W, 80 * scale);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      const spacing = state.spacing * scale;
+      const radius = state.radius * scale;
+
+      // 2. Sidebar
+      let contentLeft = spacing;
+      let contentWidth = W - spacing * 2;
+
+      if (state.sidebar !== 'none') {
+        const sidebarWidth = state.sidebar === 'compact' ? W * 0.08 : (state.sidebar === 'floating' ? W * 0.07 : W * 0.18);
+        ctx.fillStyle = state.colors.sidebarBg;
+        
+        if (state.sidebar === 'floating') {
+          // Floating pill nav
+          roundRect(ctx, spacing, spacing, sidebarWidth, H - spacing * 2, radius * 2);
+          ctx.fill();
+        } else {
+          ctx.fillRect(0, 0, sidebarWidth, H);
+          ctx.strokeStyle = state.colors.border;
+          ctx.lineWidth = 1 * scale;
+          ctx.beginPath();
+          ctx.moveTo(sidebarWidth, 0);
+          ctx.lineTo(sidebarWidth, H);
+          ctx.stroke();
+        }
+
+        contentLeft = sidebarWidth + spacing * (state.sidebar === 'floating' ? 2 : 1);
+        contentWidth = W - contentLeft - spacing;
+      }
+
+      // 3. Chrome Header
+      const headerHeight = 44 * scale;
+      const headerY = spacing + (state.layout === 'template-bauhaus-memphis' ? 24 * scale : 0);
+
+      ctx.strokeStyle = state.colors.border;
+      ctx.lineWidth = 1 * scale;
+      ctx.beginPath();
+      ctx.moveTo(contentLeft, headerY + headerHeight);
+      ctx.lineTo(contentLeft + contentWidth, headerY + headerHeight);
+      ctx.stroke();
+
+      if (state.chromeTabStyle === 'underline') {
+        ctx.strokeStyle = state.colors.accent;
+        ctx.lineWidth = 3 * scale;
+        ctx.beginPath();
+        ctx.moveTo(contentLeft, headerY + headerHeight);
+        ctx.lineTo(contentLeft + 80 * scale, headerY + headerHeight);
+        ctx.stroke();
+      }
+
+      // 4. KPI Cards
+      let currentTop = headerY + headerHeight + spacing;
+      if (state.kpiCount > 0) {
+        const kpiHeight = 84 * scale;
+        const totalKpiGap = (state.kpiCount - 1) * spacing;
+        const kpiWidth = (contentWidth - totalKpiGap) / state.kpiCount;
+
+        for (let i = 0; i < state.kpiCount; i++) {
+          const kx = contentLeft + i * (kpiWidth + spacing);
+          drawCanvasCard(ctx, kx, currentTop, kpiWidth, kpiHeight, radius, true, scale);
+        }
+        currentTop += kpiHeight + spacing;
+      }
+
+      // 5. Visual Grid Arrangement Cards
+      const visualAreaHeight = H - currentTop - spacing - (state.showFooter ? 24 * scale : 0);
+      const boxes = getLayoutBoxes(state.layout);
+
+      boxes.forEach(box => {
+        const bx = contentLeft + (box.x / 100) * contentWidth;
+        const by = currentTop + (box.y / 100) * visualAreaHeight;
+        const bw = (box.w / 100) * contentWidth;
+        const bh = (box.h / 100) * visualAreaHeight;
+        
+        let cardBgColor = state.colors.cardBg;
+        if (box.isBauhausAction === 'red') cardBgColor = '#EF4444';
+        else if (box.isBauhausAction === 'cyan') cardBgColor = '#38BDF8';
+        else if (box.isBauhausAction === 'dark') cardBgColor = '#0F172A';
+
+        drawCanvasCard(ctx, bx, by, bw, bh, radius, false, scale, cardBgColor, box.isLineStyle);
+      });
+
+      // 6. Download PNG Image
+      const filename = `PowerBI_背景_${state.presetName.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '_')}_${state.width}x${state.height}_${scale}x.png`;
+      const link = document.createElement('a');
+      link.download = filename;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+
+      showToast(`已成功导出 ${scale}x 高清 PNG 背景底图！`);
+    }
+
+    function drawCanvasCard(ctx, x, y, width, height, radius, isKpi, scale, customBg = null, isLineStyle = false) {
+      ctx.save();
+      const applyShadow = !isLineStyle && state.shadowEnabled && ((isKpi && state.shadowApplyKPIs) || (!isKpi && state.shadowApplyVisuals));
+
+      if (applyShadow) {
+        let offsetX = 0;
+        let offsetY = 0;
+        if (state.shadowSides.right) offsetX += state.shadowIntensity * 3 * scale;
+        if (state.shadowSides.left) offsetX -= state.shadowIntensity * 3 * scale;
+        if (state.shadowSides.down) offsetY += state.shadowIntensity * 3 * scale;
+        if (state.shadowSides.up) offsetY -= state.shadowIntensity * 3 * scale;
+
+        const isDark = state.colors.isDark;
+        const alpha = isDark ? 0.35 * state.shadowIntensity : 0.08 * state.shadowIntensity;
+
+        ctx.shadowColor = `rgba(0, 0, 0, ${alpha})`;
+        ctx.shadowBlur = Math.max(3, state.shadowIntensity * 6 * scale);
+        ctx.shadowOffsetX = offsetX;
+        ctx.shadowOffsetY = offsetY;
+      }
+
+      ctx.beginPath();
+      roundRect(ctx, x, y, width, height, radius);
+      ctx.fillStyle = customBg || state.colors.cardBg;
+      ctx.fill();
+
+      ctx.shadowColor = 'transparent';
+      ctx.lineWidth = 1 * scale;
+      ctx.strokeStyle = state.colors.border;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      const r = Math.min(radius, width / 2, height / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + width, y, x + width, y + height, r);
+      ctx.arcTo(x + width, y + height, x, y + height, r);
+      ctx.arcTo(x, y + height, x, y, r);
+      ctx.arcTo(x, y, x + width, y, r);
+      ctx.closePath();
+    }
+
+    function exportSVG(copyToClipboard = false) {
+      const W = state.width;
+      const H = state.height;
+      const spacing = state.spacing;
+      const radius = state.radius;
+
+      let offsetX = 0;
+      let offsetY = 0;
+      if (state.shadowSides.right) offsetX += state.shadowIntensity * 3;
+      if (state.shadowSides.left) offsetX -= state.shadowIntensity * 3;
+      if (state.shadowSides.down) offsetY += state.shadowIntensity * 3;
+      if (state.shadowSides.up) offsetY -= state.shadowIntensity * 3;
+      const blur = Math.max(3, state.shadowIntensity * 6);
+
+      let svgXml = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">\n`;
+      svgXml += `  <defs>\n`;
+      svgXml += `    <filter id="pbiCardShadow" x="-20%" y="-20%" width="140%" height="140%">\n`;
+      svgXml += `      <feDropShadow dx="${offsetX}" dy="${offsetY}" stdDeviation="${blur / 2}" flood-color="#000000" flood-opacity="${state.colors.isDark ? '0.35' : '0.08'}"/>\n`;
+      svgXml += `    </filter>\n`;
+      svgXml += `  </defs>\n`;
+      
+      svgXml += `  <rect width="${W}" height="${H}" fill="${state.colors.canvasBg}"/>\n`;
+
+      let contentLeft = spacing;
+      let contentWidth = W - spacing * 2;
+      if (state.sidebar !== 'none') {
+        const sidebarWidth = state.sidebar === 'compact' ? W * 0.08 : (state.sidebar === 'floating' ? W * 0.07 : W * 0.18);
+        svgXml += `  <rect x="0" y="0" width="${sidebarWidth}" height="${H}" fill="${state.colors.sidebarBg}" stroke="${state.colors.border}" stroke-width="1"/>\n`;
+        contentLeft = sidebarWidth + spacing;
+        contentWidth = W - sidebarWidth - spacing * 2;
+      }
+
+      const headerHeight = 44;
+      svgXml += `  <line x1="${contentLeft}" y1="${spacing + headerHeight}" x2="${contentLeft + contentWidth}" y2="${spacing + headerHeight}" stroke="${state.colors.border}" stroke-width="1"/>\n`;
+      if (state.chromeTabStyle === 'underline') {
+        svgXml += `  <line x1="${contentLeft}" y1="${spacing + headerHeight}" x2="${contentLeft + 80}" y2="${spacing + headerHeight}" stroke="${state.colors.accent}" stroke-width="3"/>\n`;
+      }
+
+      let currentTop = spacing + headerHeight + spacing;
+      if (state.kpiCount > 0) {
+        const kpiHeight = 84;
+        const totalKpiGap = (state.kpiCount - 1) * spacing;
+        const kpiWidth = (contentWidth - totalKpiGap) / state.kpiCount;
+        for (let i = 0; i < state.kpiCount; i++) {
+          const kx = contentLeft + i * (kpiWidth + spacing);
+          svgXml += `  <rect x="${kx}" y="${currentTop}" width="${kpiWidth}" height="${kpiHeight}" rx="${radius}" fill="${state.colors.cardBg}" stroke="${state.colors.border}" filter="url(#pbiCardShadow)"/>\n`;
+        }
+        currentTop += kpiHeight + spacing;
+      }
+
+      const visualAreaHeight = H - currentTop - spacing - (state.showFooter ? 24 : 0);
+      const boxes = getLayoutBoxes(state.layout);
+
+      boxes.forEach(box => {
+        const bx = contentLeft + (box.x / 100) * contentWidth;
+        const by = currentTop + (box.y / 100) * visualAreaHeight;
+        const bw = (box.w / 100) * contentWidth;
+        const bh = (box.h / 100) * visualAreaHeight;
+        svgXml += `  <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${radius}" fill="${state.colors.cardBg}" stroke="${state.colors.border}" filter="url(#pbiCardShadow)"/>\n`;
+      });
+
+      svgXml += `</svg>`;
+
+      if (copyToClipboard) {
+        const dummy = document.createElement('textarea');
+        dummy.value = svgXml;
+        document.body.appendChild(dummy);
+        dummy.select();
+        document.execCommand('copy');
+        document.body.removeChild(dummy);
+        showToast('SVG XML 矢量代码已复制到剪贴板！');
+      } else {
+        const blob = new Blob([svgXml], { type: 'image/svg+xml;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `PowerBI_背景_${state.presetName}_${state.layout}.svg`;
+        link.click();
+        showToast('SVG 矢量文件已开始下载！');
+      }
+    }
+
+    function exportPowerBiThemeJson() {
+      const theme = {
+        name: `Studio ${state.presetName}`,
+        dataColors: [
+          state.colors.accent,
+          "#3B82F6",
+          "#8B5CF6",
+          "#EC4899",
+          "#10B981",
+          "#06B6D4",
+          "#F59E0B",
+          "#64748B"
+        ],
+        background: state.colors.canvasBg,
+        foreground: state.colors.text,
+        tableAccent: state.colors.accent,
+        visualStyles: {
+          page: {
+            "*": {
+              background: [
+                {
+                  color: { solid: { color: state.colors.canvasBg } },
+                  transparency: 0
+                }
+              ]
+            }
+          },
+          "*": {
+            "*": {
+              background: [
+                {
+                  color: { solid: { color: state.colors.cardBg } },
+                  transparency: 0
+                }
+              ],
+              border: [
+                {
+                  show: true,
+                  color: { solid: { color: state.colors.border } },
+                  radius: state.radius
+                }
+              ]
+            }
+          }
+        }
+      };
+
+      const jsonStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(theme, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", jsonStr);
+      downloadAnchor.setAttribute("download", `PowerBI_主题_${state.presetName.replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '_')}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+
+      showToast('Power BI 官方主题 JSON 文件已生成并下载！');
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toastMessage');
+      const text = document.getElementById('toastText');
+      text.textContent = message;
+      toast.classList.remove('hidden');
+      toast.classList.add('toast-animate');
+
+      setTimeout(() => {
+        toast.classList.add('hidden');
+        toast.classList.remove('toast-animate');
+      }, 3000);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initEventListeners();
+      renderPreview();
+    });
+  </script>
+</body>
+</html>
