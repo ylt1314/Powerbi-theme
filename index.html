@@ -80,14 +80,6 @@
     }
 
     /* 3D and perspective simulation styles */
-    .perspective-grid {
-      transform-style: preserve-3d;
-      perspective: 900px;
-    }
-    .card-3d-lift {
-      transform: translateZ(12px) rotateX(2deg);
-      box-shadow: 0 16px 28px -6px rgba(0, 0, 0, 0.25), 0 8px 10px -4px rgba(0, 0, 0, 0.15);
-    }
     .card-neumorphic {
       box-shadow: 6px 6px 14px rgba(0,0,0,0.18), -6px -6px 14px rgba(255,255,255,0.06);
     }
@@ -117,7 +109,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 flex flex-col items-center justify-start p-2 sm:p-4 md:p-6 lg:p-7 relative overflow-x-hidden">
 
-  <!-- ================= LOGIN AUTHENTICATION COVER MODAL ================= -->
+  <!-- ================= LOGIN AUTHENTICATION COVER MODAL (NO PASSWORD HINTS) ================= -->
   <div id="loginCoverModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 transition-all duration-500">
     <div id="loginCard" class="w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-700/40 overflow-hidden grid grid-cols-1 md:grid-cols-12 transform transition-all duration-300">
       
@@ -200,14 +192,14 @@
               </div>
             </div>
 
-            <!-- Password Input -->
+            <!-- Password Input (Without Password Hints) -->
             <div>
               <div class="flex items-center justify-between mb-1.5">
                 <label class="text-xs font-semibold text-slate-700">登录密码 (Password)</label>
-                <span class="text-[10px] text-slate-400 font-mono">默认密码: 888888</span>
+                <span class="text-[10px] text-slate-400 font-mono">安全验证</span>
               </div>
               <div class="relative">
-                <input type="password" id="loginPasswordInput" placeholder="请输入密码 (888888)" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                <input type="password" id="loginPasswordInput" placeholder="请输入工作台密码" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-xs font-mono text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
                 <button type="button" id="togglePasswordVisibilityBtn" class="absolute inset-y-0 right-0 px-3 text-slate-400 hover:text-slate-600">
                   <svg id="eyeIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                 </button>
@@ -217,7 +209,7 @@
             <!-- Error Feedback Box -->
             <div id="loginErrorMsg" class="hidden text-xs text-rose-600 bg-rose-50 border border-rose-200 rounded-xl p-2.5 flex items-center space-x-1.5">
               <svg class="w-4 h-4 text-rose-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-              <span id="loginErrorText">密码错误，请核对后重试（测试密码：888888）</span>
+              <span id="loginErrorText">密码错误，请核对后重试</span>
             </div>
 
             <button type="button" id="submitLoginBtn" class="w-full mt-2 py-3 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center space-x-2 transition-all shadow-md shadow-emerald-500/20">
@@ -228,8 +220,8 @@
         </div>
 
         <div class="pt-6 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-          <span>登录凭证：账号 <strong class="text-slate-600">14599</strong> · 密码 <strong class="text-slate-600">888888</strong></span>
-          <span class="text-emerald-600 font-semibold">即刻体验</span>
+          <span>内部安全通道 · 请使用授权工号登录</span>
+          <span class="text-emerald-600 font-semibold">权限受控</span>
         </div>
       </div>
 
@@ -378,7 +370,7 @@
 
                 <!-- Main Layout Visual Grid Area -->
                 <div id="previewVisualGrid" class="flex-1 min-h-0 relative">
-                  <!-- Dynamic layout cards populated via JS based on selected arrangement -->
+                  <!-- Dynamic layout cards populated via JS -->
                 </div>
 
                 <!-- Footer Strip -->
@@ -526,13 +518,11 @@
 
                 <!-- TAB 1: 经典栅格 (18 款) -->
                 <div id="tab-classic" class="layout-tab-content grid grid-cols-3 sm:grid-cols-6 gap-2">
-                  <!-- 1. Single -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="single" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex items-center justify-center"><div class="w-full h-full wireframe-box"></div></div>
                     <span class="text-[11px] font-medium text-slate-700 block truncate">单卡片 (Single)</span>
                   </button>
 
-                  <!-- 2. 2 Rows -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2rows" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col justify-between gap-1">
                       <div class="w-full h-3 wireframe-box"></div><div class="w-full h-3 wireframe-box"></div>
@@ -540,7 +530,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">双行分栏</span>
                   </button>
 
-                  <!-- 3. 2 Cols -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2cols" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex justify-between gap-1">
                       <div class="w-1/2 h-full wireframe-box"></div><div class="w-1/2 h-full wireframe-box"></div>
@@ -548,7 +537,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">双列分屏</span>
                   </button>
 
-                  <!-- 4. 1 + 2 -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="1+2" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col justify-between gap-1">
                       <div class="w-full h-3.5 wireframe-box"></div>
@@ -557,7 +545,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">1 + 2 版式</span>
                   </button>
 
-                  <!-- 5. 2 + 1 -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2+1" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col justify-between gap-1">
                       <div class="flex gap-1 h-3.5"><div class="w-1/2 h-full wireframe-box"></div><div class="w-1/2 h-full wireframe-box"></div></div>
@@ -566,7 +553,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">2 + 1 版式</span>
                   </button>
 
-                  <!-- 6. Left Main -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="left-main" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex gap-1">
                       <div class="w-3/5 h-full wireframe-box"></div>
@@ -575,7 +561,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">左侧主看板</span>
                   </button>
 
-                  <!-- 7. Right Main -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="right-main" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex gap-1">
                       <div class="w-2/5 h-full flex flex-col gap-1"><div class="w-full h-1/2 wireframe-box"></div><div class="w-full h-1/2 wireframe-box"></div></div>
@@ -584,7 +569,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">右侧主看板</span>
                   </button>
 
-                  <!-- 8. 1 + 3 -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="1+3" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col justify-between gap-1">
                       <div class="w-full h-3.5 wireframe-box"></div>
@@ -593,7 +577,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">1 + 3 通栏</span>
                   </button>
 
-                  <!-- 9. 2 × 2 -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2x2" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 grid grid-cols-2 grid-rows-2 gap-1">
                       <div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div>
@@ -601,7 +584,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">2 × 2 四宫格</span>
                   </button>
 
-                  <!-- 10. 2×2 + Bar -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2x2+bar" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col gap-1">
                       <div class="grid grid-cols-2 gap-1 h-5"><div class="wireframe-box"></div><div class="wireframe-box"></div></div>
@@ -610,7 +592,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">2×2 + 底栏</span>
                   </button>
 
-                  <!-- 11. 2 × 3 -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="2x3" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 grid grid-cols-3 grid-rows-2 gap-0.5">
                       <div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div>
@@ -619,7 +600,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">2 × 3 六卡片</span>
                   </button>
 
-                  <!-- 12. 3 × 2 -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="3x2" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 grid grid-cols-2 grid-rows-3 gap-0.5">
                       <div class="wireframe-box"></div><div class="wireframe-box"></div>
@@ -629,7 +609,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">3 × 2 矩阵</span>
                   </button>
 
-                  <!-- 13. 3 × 3 -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="3x3" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-0.5 mb-1 grid grid-cols-3 grid-rows-3 gap-0.5">
                       <div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div>
@@ -639,7 +618,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">3 × 3 九宫格</span>
                   </button>
 
-                  <!-- 14. Side + 3 -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="side+3" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex gap-1">
                       <div class="w-1/3 h-full wireframe-box"></div>
@@ -648,7 +626,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">侧栏索引 + 3</span>
                   </button>
 
-                  <!-- 15. Dashboard -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="dashboard" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col gap-0.5">
                       <div class="grid grid-cols-3 gap-0.5 h-2"><div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div></div>
@@ -658,7 +635,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">综合仪表盘</span>
                   </button>
 
-                  <!-- 16. Drillthrough -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="drillthrough" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex gap-1">
                       <div class="w-2/5 h-full wireframe-box"></div>
@@ -667,7 +643,6 @@
                     <span class="text-[11px] font-medium text-slate-700 block truncate">钻取分析视图</span>
                   </button>
 
-                  <!-- 17. Filter + 2+1 (ACTIVE DEFAULT MATCHING SCREENSHOT) -->
                   <button type="button" class="layout-card-btn active p-2 rounded-xl border text-center transition-all bg-brand-50/70 border-emerald-500 ring-2 ring-emerald-500/20" data-layout="filter+2+1" data-category="经典栅格">
                     <div class="h-9 w-full bg-emerald-100/50 rounded-md p-1 mb-1 flex flex-col justify-between gap-1">
                       <div class="w-full h-2 wireframe-box"></div>
@@ -677,7 +652,6 @@
                     <span class="text-[11px] font-bold text-emerald-800 block truncate">Filter + 2+1</span>
                   </button>
 
-                  <!-- 18. KPI 4+3 -->
                   <button type="button" class="layout-card-btn p-2 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="kpi4+3" data-category="经典栅格">
                     <div class="h-9 w-full bg-slate-100 rounded-md p-1 mb-1 flex flex-col gap-1">
                       <div class="grid grid-cols-4 gap-0.5 h-2"><div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div><div class="wireframe-box"></div></div>
@@ -687,16 +661,13 @@
                   </button>
                 </div>
 
-                <!-- TAB 2: 线条极简型布局 (Line-based Layouts, 4 款) -->
+                <!-- TAB 2: 线条极简型布局 (4 款) -->
                 <div id="tab-line" class="layout-tab-content hidden grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="line-area-split" data-category="线条极简">
                     <div class="h-10 w-full bg-slate-50 border border-slate-200 rounded-md p-1 mb-1.5 flex flex-col justify-between">
                       <div class="h-1.5 w-1/3 bg-slate-400 rounded-xs"></div>
                       <div class="w-full h-px bg-slate-300"></div>
-                      <div class="flex gap-1 h-4">
-                        <div class="w-1/2 border-r border-slate-300"></div>
-                        <div class="w-1/2"></div>
-                      </div>
+                      <div class="flex gap-1 h-4"><div class="w-1/2 border-r border-slate-300"></div><div class="w-1/2"></div></div>
                     </div>
                     <span class="text-xs font-semibold text-slate-800 block">细线区域分割 (Area Title)</span>
                     <span class="text-[10px] text-slate-400">参考图 5/6/8 纯净细线</span>
@@ -714,14 +685,8 @@
 
                   <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="line-header-lead" data-category="线条极简">
                     <div class="h-10 w-full bg-slate-50 border border-slate-200 rounded-md p-1 mb-1.5 flex flex-col justify-between">
-                      <div class="h-2 w-full border-b border-emerald-500 flex items-center">
-                        <div class="h-1 w-6 bg-emerald-500 rounded"></div>
-                      </div>
-                      <div class="grid grid-cols-3 gap-1 h-5 pt-1">
-                        <div class="border-b border-slate-300"></div>
-                        <div class="border-b border-slate-300"></div>
-                        <div class="border-b border-slate-300"></div>
-                      </div>
+                      <div class="h-2 w-full border-b border-emerald-500 flex items-center"><div class="h-1 w-6 bg-emerald-500 rounded"></div></div>
+                      <div class="grid grid-cols-3 gap-1 h-5 pt-1"><div class="border-b border-slate-300"></div><div class="border-b border-slate-300"></div><div class="border-b border-slate-300"></div></div>
                     </div>
                     <span class="text-xs font-semibold text-slate-800 block">通栏引导线布局</span>
                     <span class="text-[10px] text-slate-400">极简指标走廊</span>
@@ -736,7 +701,7 @@
                   </button>
                 </div>
 
-                <!-- TAB 3: 3D/空间透视布局 (3D & Dimensional Layouts, 4 款) -->
+                <!-- TAB 3: 3D/空间透视布局 (4 款) -->
                 <div id="tab-dimensional" class="layout-tab-content hidden grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-layout="3d-neumorphic" data-category="3D与空间透视">
                     <div class="h-10 w-full bg-slate-100 rounded-md p-1.5 mb-1.5 flex items-center justify-center">
@@ -774,10 +739,8 @@
                   </button>
                 </div>
 
-                <!-- TAB 4: 商务潮流定制模板 (参考用户图片专属打造, 5 款) -->
+                <!-- TAB 4: 商务潮流定制模板 (5 款) -->
                 <div id="tab-templates" class="layout-tab-content hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                  
-                  <!-- 模板 A: 有机曲线流体侧栏 (参考图 5, 6, 7) -->
                   <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-left transition-all bg-white hover:border-slate-300" data-layout="template-wave-sidebar" data-category="潮流商务模板">
                     <div class="h-12 w-full bg-[#e8edfb] rounded-lg p-1.5 mb-1.5 flex gap-1 overflow-hidden relative border border-indigo-100">
                       <div class="w-1/4 h-full bg-[#7089fa] rounded-l-md flex flex-col items-center justify-around relative">
@@ -786,20 +749,15 @@
                       </div>
                       <div class="flex-1 flex flex-col justify-between py-0.5">
                         <div class="h-2 w-full bg-white rounded-xs"></div>
-                        <div class="flex gap-1 h-5">
-                          <div class="w-2/3 bg-white rounded-xs"></div>
-                          <div class="w-1/3 bg-white rounded-xs"></div>
-                        </div>
+                        <div class="flex gap-1 h-5"><div class="w-2/3 bg-white rounded-xs"></div><div class="w-1/3 bg-white rounded-xs"></div></div>
                       </div>
                     </div>
                     <span class="text-xs font-bold text-slate-800 block truncate">模板 A · 有机曲线流体侧栏</span>
                     <span class="text-[10px] text-slate-500 block truncate">波浪凸起联动高亮点 (图 5/6/7)</span>
                   </button>
 
-                  <!-- 模板 B: 包豪斯几何艺术饰条 (参考图 8) -->
                   <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-left transition-all bg-white hover:border-slate-300" data-layout="template-bauhaus-memphis" data-category="潮流商务模板">
                     <div class="h-12 w-full bg-[#f8fafc] rounded-lg mb-1.5 flex flex-col overflow-hidden relative border border-slate-200">
-                      <!-- Geometric header banner -->
                       <div class="h-3 w-full bg-gradient-to-r from-red-400 via-amber-300 via-emerald-400 to-blue-500 flex items-center justify-around px-1">
                         <div class="w-1.5 h-1.5 bg-black rounded-full"></div>
                         <div class="w-1.5 h-1.5 bg-white transform rotate-45"></div>
@@ -820,7 +778,6 @@
                     <span class="text-[10px] text-slate-500 block truncate">彩色几何顶栏与动作卡片 (图 8)</span>
                   </button>
 
-                  <!-- 模板 C: 对角科技切面 (参考图 9) -->
                   <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-left transition-all bg-white hover:border-slate-300" data-layout="template-diagonal-tech" data-category="潮流商务模板">
                     <div class="h-12 w-full bg-[#f5f3ff] rounded-lg p-1.5 mb-1.5 flex gap-1 overflow-hidden relative border border-purple-200">
                       <div class="absolute -top-3 -right-3 w-8 h-8 bg-indigo-600 transform rotate-45"></div>
@@ -829,17 +786,13 @@
                       </div>
                       <div class="flex-1 flex flex-col justify-between py-0.5">
                         <div class="h-3 w-3/4 bg-white rounded-t-sm border-t-2 border-indigo-600"></div>
-                        <div class="flex gap-1 h-5">
-                          <div class="w-1/3 bg-indigo-600 rounded-sm"></div>
-                          <div class="w-2/3 bg-white rounded-sm"></div>
-                        </div>
+                        <div class="flex gap-1 h-5"><div class="w-1/3 bg-indigo-600 rounded-sm"></div><div class="w-2/3 bg-white rounded-sm"></div></div>
                       </div>
                     </div>
                     <span class="text-xs font-bold text-slate-800 block truncate">模板 C · 对角科技切面</span>
                     <span class="text-[10px] text-slate-500 block truncate">四角科技切角与双层盖头 (图 9)</span>
                   </button>
 
-                  <!-- 模板 D: 极简悬浮胶囊舱 (参考图 4, 10) -->
                   <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-left transition-all bg-white hover:border-slate-300" data-layout="template-capsule-dock" data-category="潮流商务模板">
                     <div class="h-12 w-full bg-[#e0e7ff] rounded-lg p-1 mb-1.5 flex gap-1 overflow-hidden relative border border-indigo-200">
                       <div class="w-4 h-full bg-[#4f46e5] rounded-full flex flex-col items-center justify-around py-1">
@@ -855,7 +808,6 @@
                     <span class="text-[10px] text-slate-500 block truncate">悬浮胶囊栏与等高线微光 (图 4/10)</span>
                   </button>
 
-                  <!-- 模板 E: 独立悬空浮动岛 (参考图 11) -->
                   <button type="button" class="layout-card-btn p-2.5 rounded-xl border border-slate-200 text-left transition-all bg-white hover:border-slate-300" data-layout="template-floating-island" data-category="潮流商务模板">
                     <div class="h-12 w-full bg-[#f1f5f9] rounded-lg p-1 mb-1.5 flex gap-1.5 overflow-hidden relative border border-slate-200">
                       <div class="w-3.5 h-full bg-[#f97316] rounded-full flex flex-col items-center justify-around py-1 shadow-sm">
@@ -1056,10 +1008,9 @@
 
             <div id="panel-colors" class="accordion-content border-t border-slate-100 p-4 space-y-4 bg-white">
               
-              <!-- 24 Swatch Cards Grid matching screenshots + New Media & Tech Palettes -->
+              <!-- 24 Swatch Cards Grid matching all screenshots + Media & Tech Palettes -->
               <div id="colorPresetsGrid" class="grid grid-cols-3 sm:grid-cols-6 gap-2.5">
                 
-                <!-- 1. 纯净白 (Clean White) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="clean-white">
                   <div class="h-10 w-full rounded-lg bg-[#F8FAFC] border border-slate-200 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#6366F1] rounded-xs"></div>
@@ -1067,7 +1018,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">纯净白</span>
                 </button>
 
-                <!-- 2. 温润沙褐 (Warm Sand) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="warm-sand">
                   <div class="h-10 w-full rounded-lg bg-[#F5F2EB] border border-slate-200 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#B45309] rounded-xs"></div>
@@ -1075,7 +1025,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">温润沙褐</span>
                 </button>
 
-                <!-- 3. 冷冽板岩 (Cool Slate) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="cool-slate">
                   <div class="h-10 w-full rounded-lg bg-[#F1F5F9] border border-slate-200 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#E11D48] rounded-xs"></div>
@@ -1083,7 +1032,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">冷冽板岩</span>
                 </button>
 
-                <!-- 4. 鼠尾草绿 (Sage Forest) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="sage-forest">
                   <div class="h-10 w-full rounded-lg bg-[#F0FDF4] border border-slate-200 p-1 flex flex-col gap-0.5 mb-1">
                     <div class="w-full h-1.5 bg-[#0F766E] rounded-xs"></div>
@@ -1092,7 +1040,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">鼠尾草绿</span>
                 </button>
 
-                <!-- 5. 柔紫罗兰 (Soft Lavender) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="soft-lavender">
                   <div class="h-10 w-full rounded-lg bg-[#FAF5FF] border border-slate-200 p-1 flex flex-col gap-0.5 mb-1">
                     <div class="w-full h-1.5 bg-[#0D9488] rounded-xs"></div>
@@ -1101,7 +1048,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">柔紫罗兰</span>
                 </button>
 
-                <!-- 6. 青柠鲜活 (Lime Fresh) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="lime-fresh">
                   <div class="h-10 w-full rounded-lg bg-[#F7FEE7] border border-slate-200 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#65A30D] rounded-xs"></div>
@@ -1109,7 +1055,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">青柠鲜活</span>
                 </button>
 
-                <!-- 7. 深邃海军蓝 (Navy) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="navy">
                   <div class="h-10 w-full rounded-lg bg-[#1E293B] border border-slate-700 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-[#334155] rounded-xs"></div><div class="w-3 bg-[#10B981] rounded-xs"></div>
@@ -1117,7 +1062,7 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">深邃海军蓝</span>
                 </button>
 
-                <!-- 8. 炭黑深色 (Charcoal - 默认高亮) -->
+                <!-- Charcoal (默认高亮) -->
                 <button type="button" class="preset-card-btn active p-1.5 rounded-xl border-2 border-slate-900 ring-2 ring-slate-900/10 text-center transition-all bg-white" data-preset="charcoal">
                   <div class="h-10 w-full rounded-lg bg-[#18191C] border border-slate-700 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-[#26282D] rounded-xs"></div><div class="w-3 bg-[#F59E0B] rounded-xs"></div>
@@ -1125,7 +1070,6 @@
                   <span class="text-[11px] font-bold text-slate-900 block truncate">炭黑深色</span>
                 </button>
 
-                <!-- 9. 午夜霓虹 (Midnight) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="midnight">
                   <div class="h-10 w-full rounded-lg bg-[#0B1329] border border-slate-800 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-[#17223B] rounded-xs"></div><div class="w-3 bg-[#38BDF8] rounded-xs"></div>
@@ -1133,7 +1077,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">午夜霓虹</span>
                 </button>
 
-                <!-- 10. 深青墨绿 (Dark Teal) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="dark-teal">
                   <div class="h-10 w-full rounded-lg bg-[#042024] border border-teal-900 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-[#0A363D] rounded-xs"></div><div class="w-3 bg-[#2DD4BF] rounded-xs"></div>
@@ -1141,7 +1084,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">深青墨绿</span>
                 </button>
 
-                <!-- 11. 暖灰深黑 (Dark Warm) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="dark-warm">
                   <div class="h-10 w-full rounded-lg bg-[#1C1917] border border-stone-800 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-[#292524] rounded-xs"></div><div class="w-3 bg-[#F97316] rounded-xs"></div>
@@ -1149,7 +1091,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">暖灰深黑</span>
                 </button>
 
-                <!-- 12. 暗夜柔蓝 (Navy Soft) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="navy-soft">
                   <div class="h-10 w-full rounded-lg bg-[#111927] border border-slate-800 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-[#1F293D] rounded-xs"></div><div class="w-3 bg-[#60A5FA] rounded-xs"></div>
@@ -1157,7 +1098,7 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">暗夜柔蓝</span>
                 </button>
 
-                <!-- 13. 经济学人 (The Economist) - 新增顶刊风格 -->
+                <!-- 经济学人 -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="economist">
                   <div class="h-10 w-full rounded-lg bg-[#F3EFE6] border border-[#DDD6CD] p-1 flex flex-col gap-0.5 mb-1">
                     <div class="w-full h-1.5 bg-[#E3120B] rounded-xs"></div>
@@ -1166,7 +1107,7 @@
                   <span class="text-[11px] font-bold text-slate-800 block truncate">经济学人</span>
                 </button>
 
-                <!-- 14. 麦肯锡 (McKinsey & Company) - 新增顶刊风格 -->
+                <!-- 麦肯锡 -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="mckinsey">
                   <div class="h-10 w-full rounded-lg bg-[#F0F5FA] border border-[#CAD8E8] p-1 flex flex-col gap-0.5 mb-1">
                     <div class="w-full h-1.5 bg-[#002B49] rounded-xs"></div>
@@ -1175,7 +1116,7 @@
                   <span class="text-[11px] font-bold text-slate-800 block truncate">麦肯锡咨询</span>
                 </button>
 
-                <!-- 15. 华尔街日报 (WSJ) - 新增金融风格 -->
+                <!-- 华尔街日报 -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="wsj">
                   <div class="h-10 w-full rounded-lg bg-[#F8F6F0] border border-[#DDD8CB] p-1 flex flex-col gap-0.5 mb-1">
                     <div class="w-full h-1.5 bg-[#111111] rounded-xs"></div>
@@ -1184,7 +1125,7 @@
                   <span class="text-[11px] font-bold text-slate-800 block truncate">华尔街日报</span>
                 </button>
 
-                <!-- 16. 金融时报 (Financial Times) - 新增鲑鱼粉风格 -->
+                <!-- 金融时报 -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="financial-times">
                   <div class="h-10 w-full rounded-lg bg-[#FFF1E5] border border-[#E7CFB5] p-1 flex flex-col gap-0.5 mb-1">
                     <div class="w-full h-1.5 bg-[#990F3D] rounded-xs"></div>
@@ -1193,7 +1134,7 @@
                   <span class="text-[11px] font-bold text-slate-800 block truncate">金融时报</span>
                 </button>
 
-                <!-- 17. 科技赛博霓蓝 (Tech Cyber) - 新增科技风格 -->
+                <!-- 科技赛博霓蓝 -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="tech-cyber">
                   <div class="h-10 w-full rounded-lg bg-[#080E1E] border border-[#1E3A8A] p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-[#0F1A34] rounded-xs"></div><div class="w-3 bg-[#00F2FE] rounded-xs"></div>
@@ -1201,7 +1142,7 @@
                   <span class="text-[11px] font-bold text-slate-800 block truncate">科技赛博霓蓝</span>
                 </button>
 
-                <!-- 18. 商务现代简约 (Business Minimal) - 新增商务风格 -->
+                <!-- 商务现代简约 -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="biz-minimal">
                   <div class="h-10 w-full rounded-lg bg-[#F8FAFC] border border-slate-200 p-1 flex flex-col gap-0.5 mb-1">
                     <div class="w-full h-1.5 bg-[#2563EB] rounded-xs"></div>
@@ -1210,7 +1151,7 @@
                   <span class="text-[11px] font-bold text-slate-800 block truncate">商务现代简约</span>
                 </button>
 
-                <!-- 19. 彭博黑金终端 (Bloomberg Dark) - 新增量化风格 -->
+                <!-- 彭博黑金 -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="bloomberg">
                   <div class="h-10 w-full rounded-lg bg-[#000000] border border-[#27272A] p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-[#141414] rounded-xs"></div><div class="w-3 bg-[#FF9900] rounded-xs"></div>
@@ -1218,7 +1159,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">彭博黑金</span>
                 </button>
 
-                <!-- 20. 太平洋蓝 (Pacific Blue) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="pacific-blue">
                   <div class="h-10 w-full rounded-lg bg-[#F0F7FF] border border-blue-100 p-1 flex flex-col gap-0.5 mb-1">
                     <div class="w-full h-1.5 bg-[#2563EB] rounded-xs"></div>
@@ -1227,7 +1167,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">太平洋蓝</span>
                 </button>
 
-                <!-- 21. 太平洋雾 (Pacific Mist) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="pacific-mist">
                   <div class="h-10 w-full rounded-lg bg-[#EEF2F6] border border-slate-200 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-white rounded-xs"></div><div class="w-3 bg-[#0D9488] rounded-xs"></div>
@@ -1235,7 +1174,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">太平洋雾</span>
                 </button>
 
-                <!-- 22. 包豪斯几何 (Bauhaus Memphis) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="bauhaus-memphis">
                   <div class="h-10 w-full rounded-lg bg-[#FAFAF9] border border-slate-200 p-1 flex flex-col gap-0.5 mb-1">
                     <div class="w-full h-1.5 bg-gradient-to-r from-red-500 via-amber-400 to-blue-500 rounded-xs"></div>
@@ -1244,7 +1182,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">包豪斯几何</span>
                 </button>
 
-                <!-- 23. 梦幻极光紫 (Aurora Purple) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="aurora-purple">
                   <div class="h-10 w-full rounded-lg bg-[#2E1065] border border-purple-800 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-[#3B0764] rounded-xs"></div><div class="w-3 bg-[#A855F7] rounded-xs"></div>
@@ -1252,7 +1189,6 @@
                   <span class="text-[11px] font-medium text-slate-700 block truncate">梦幻极光紫</span>
                 </button>
 
-                <!-- 24. 极客暗夜金 (Cyber Gold) -->
                 <button type="button" class="preset-card-btn p-1.5 rounded-xl border border-slate-200 text-center transition-all bg-white hover:border-slate-300" data-preset="cyber-gold">
                   <div class="h-10 w-full rounded-lg bg-[#0F0F11] border border-amber-900/60 p-1 flex gap-1 mb-1">
                     <div class="flex-1 bg-[#1A1A1E] rounded-xs"></div><div class="w-3 bg-[#EAB308] rounded-xs"></div>
@@ -1664,9 +1600,9 @@
       aspectLocked: true,
       presetKey: 'charcoal',
       presetName: '炭黑深色 (Charcoal)',
-      layout: 'filter+2+1', // Active default matching screenshot 1
+      layout: 'filter+2+1',
       layoutCategory: '经典栅格',
-      sidebar: 'full', // 'full', 'compact', 'floating', 'wave', 'none'
+      sidebar: 'full',
       chromeTabStyle: 'underline',
       chromeTabsCount: 5,
       showFooter: false,
@@ -1741,7 +1677,6 @@
       return `${offsetX}px ${offsetY}px ${blur}px rgba(0, 0, 0, ${alpha})`;
     }
 
-    // Layout boxes generator supporting classic, line-based, 3D, and trend templates
     function getLayoutBoxes(layoutType) {
       switch (layoutType) {
         case 'single':
@@ -1875,7 +1810,7 @@
             { x: 68, y: 26, w: 32, h: 74, title: '业务健康度组合', type: 'donut' }
           ];
 
-        // --- LINE-BASED LAYOUTS (参考图 5/6/8 Area title 细线布局) ---
+        // --- LINE-BASED LAYOUTS ---
         case 'line-area-split':
           return [
             { x: 0, y: 0, w: 58, h: 46, title: '区域指标 · Area Title A', type: 'line', isLineStyle: true },
@@ -1933,7 +1868,7 @@
             { x: 0, y: 52, w: 100, h: 48, title: '双层立体顶盖 · 全局流转明细', type: 'table', isDoubleCap: true }
           ];
 
-        // --- TRENDY COMMERCIAL TEMPLATES (参考用户上传图片) ---
+        // --- TRENDY COMMERCIAL TEMPLATES ---
         case 'template-wave-sidebar':
           return [
             { x: 0, y: 0, w: 64, h: 48, title: '主图表 · 核心营收趋势', type: 'line', isWaveTemplate: true },
@@ -1992,7 +1927,6 @@
       viewport.style.aspectRatio = `${state.width} / ${state.height}`;
       viewport.style.backgroundColor = state.colors.canvasBg;
 
-      // Handle custom template specific background styling
       if (state.layout === 'template-diagonal-tech') {
         viewport.style.background = `linear-gradient(135deg, ${state.colors.canvasBg} 85%, #4f46e5 85.1%, #4f46e5 88%, ${state.colors.canvasBg} 88.1%)`;
       } else if (state.layout === 'template-capsule-dock') {
@@ -2104,7 +2038,6 @@
           kpi.style.border = `1px solid ${state.colors.border}`;
           kpi.style.minHeight = '32px';
 
-          // Decorative Top Cap
           if (state.kpiStyle === 'accent-top' || state.layout === '3d-double-cap' || state.layout === 'template-diagonal-tech') {
             const cap = document.createElement('div');
             cap.className = 'absolute top-0 left-0 right-0 h-1';
@@ -2153,7 +2086,6 @@
         card.style.boxShadow = visualShadow;
         card.style.border = `1px solid ${state.colors.border}`;
 
-        // 3D / Perspective / Dimensional classes
         if (box.isNeumorphic) {
           card.classList.add('card-neumorphic');
         } else if (box.isIsometric) {
@@ -2164,7 +2096,6 @@
           card.style.borderTop = `3px solid ${state.colors.accent}`;
         }
 
-        // Bauhaus template special colored action cards (参考图 8)
         if (box.isBauhausAction === 'red') {
           card.style.backgroundColor = '#EF4444';
           card.style.borderColor = '#DC2626';
@@ -2179,7 +2110,6 @@
           card.style.color = '#FFFFFF';
         }
 
-        // Line-based Area Title styles (参考图 5/6/8)
         if (box.isLineStyle) {
           card.style.border = 'none';
           card.style.borderBottom = `1px solid ${state.colors.border}`;
@@ -2198,7 +2128,6 @@
             </div>
           `;
         } else {
-          // Clean wireframe blueprint representation
           if (box.isBauhausAction) {
             card.innerHTML = `
               <div class="w-full h-full flex flex-col items-center justify-center space-y-1">
@@ -2220,7 +2149,6 @@
         visualGrid.appendChild(card);
       });
 
-      // Update Spec summary
       updateSummaryTable();
     }
 
@@ -2309,7 +2237,6 @@
       document.getElementById('summaryFooter').textContent = state.showFooter ? '已启用标牌' : '未启用 (—)';
       document.getElementById('headerSubtitle').textContent = `Power BI · ${state.presetName} · ${layoutLabel}`;
 
-      // Accordion headers summary tags
       document.getElementById('accSummaryGrid').textContent = `${state.width} × ${state.height} · ${layoutLabel}`;
       document.getElementById('accSummaryChrome').textContent = `顶栏 · ${sidebarNameMap[state.sidebar] || state.sidebar}`;
       document.getElementById('accSummaryKpi').textContent = `${state.kpiCount} 张指标卡`;
@@ -2327,7 +2254,7 @@
     }
 
     function initEventListeners() {
-      // 0. Login Authentication System (Account: 14599, Password: 888888)
+      // 0. Login Authentication System (Without password hints)
       const loginModal = document.getElementById('loginCoverModal');
       const loginCard = document.getElementById('loginCard');
       const loginAccountSelect = document.getElementById('loginAccountSelect');
@@ -2340,7 +2267,6 @@
       const logoutBtn = document.getElementById('logoutBtn');
       const togglePasswordVisibilityBtn = document.getElementById('togglePasswordVisibilityBtn');
 
-      // Password reveal toggle
       togglePasswordVisibilityBtn.addEventListener('click', () => {
         const isPassword = loginPasswordInput.type === 'password';
         loginPasswordInput.type = isPassword ? 'text' : 'password';
@@ -2350,7 +2276,6 @@
         const selectedAccount = loginAccountSelect.value;
         const enteredPassword = loginPasswordInput.value.trim();
 
-        // Required Credentials verification (账号：14599，密码：888888)
         if (selectedAccount === '14599') {
           if (enteredPassword === '888888') {
             loginErrorMsg.classList.add('hidden');
@@ -2360,10 +2285,9 @@
             currentAccountTag.textContent = selectedAccount;
             showToast(`欢迎回来，工号 ${selectedAccount}！设计器已就绪。`);
           } else {
-            triggerLoginError('密码错误！账号 14599 对应默认密码为：888888');
+            triggerLoginError('密码错误，请核对后重试');
           }
         } else {
-          // If other select accounts chosen for testing
           if (enteredPassword === '888888') {
             loginErrorMsg.classList.add('hidden');
             loginModal.classList.add('opacity-0', 'pointer-events-none');
@@ -2372,7 +2296,7 @@
             currentAccountTag.textContent = selectedAccount;
             showToast(`欢迎进入工作台，当前身份：${selectedAccount}`);
           } else {
-            triggerLoginError(`请输入正确的账号密码（测试密码：888888）`);
+            triggerLoginError('密码错误，请核对后重试');
           }
         }
       };
@@ -2389,7 +2313,6 @@
         if (e.key === 'Enter') handleLoginAttempt();
       });
 
-      // Logout / Relock action
       logoutBtn.addEventListener('click', () => {
         loginPasswordInput.value = '';
         loginErrorMsg.classList.add('hidden');
@@ -2417,7 +2340,7 @@
         });
       });
 
-      // 2. Layout Category Tabs (经典栅格 / 线条极简 / 3D空间透视 / 商务潮流定制)
+      // 2. Layout Category Tabs
       document.querySelectorAll('.layout-tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.layout-tab-btn').forEach(b => {
@@ -2465,7 +2388,6 @@
         }
       });
 
-      // Custom Width & Height Inputs
       inputW.addEventListener('input', (e) => {
         const w = Math.max(300, Math.min(4096, Number(e.target.value) || 1600));
         state.width = w;
@@ -2490,7 +2412,7 @@
         renderPreview();
       });
 
-      // 4. Arrangement Selection (Supports all categories)
+      // 4. Arrangement Selection
       document.querySelectorAll('.layout-card-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.layout-card-btn').forEach(b => {
@@ -2514,7 +2436,6 @@
           state.layout = btn.getAttribute('data-layout');
           state.layoutCategory = btn.getAttribute('data-category') || '经典栅格';
 
-          // Automatic template preset sync
           if (state.layout === 'template-wave-sidebar') {
             state.sidebar = 'wave';
             document.getElementById('sidebarSelect').value = 'wave';
@@ -2527,7 +2448,7 @@
         });
       });
 
-      // 5. Color Preset Selection (18 Choices)
+      // 5. Color Preset Selection
       document.querySelectorAll('.preset-card-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.preset-card-btn').forEach(b => {
@@ -2536,7 +2457,8 @@
             const label = b.querySelector('span');
             if (label) {
               label.classList.remove('font-bold', 'text-slate-900');
-              label.classList.add('font-medium', 'text-slate-700');
+              label.classList.remove('font-medium');
+              label.classList.add('text-slate-700');
             }
           });
 
@@ -2545,7 +2467,6 @@
           const label = btn.querySelector('span');
           if (label) {
             label.classList.add('font-bold', 'text-slate-900');
-            label.classList.remove('font-medium', 'text-slate-700');
           }
 
           const key = btn.getAttribute('data-preset');
@@ -2555,7 +2476,6 @@
             state.presetName = p.name;
             state.colors = { ...p };
 
-            // Sync pickers
             document.getElementById('colorCanvas').value = p.canvasBg;
             document.getElementById('colorCard').value = p.cardBg;
             document.getElementById('colorAccent').value = p.accent;
@@ -2652,7 +2572,7 @@
         });
       }
 
-      // Card Shadow Toggle with defensive safeguards
+      // Card Shadow Toggle
       const shadowToggle = document.getElementById('shadowToggle');
       const shadowGroup = document.getElementById('shadowControlsGroup');
       if (shadowToggle) {
@@ -2692,7 +2612,6 @@
         });
       }
 
-      // Directional buttons
       document.querySelectorAll('.side-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           const side = btn.getAttribute('data-side');
@@ -2708,7 +2627,6 @@
         });
       });
 
-      // Shadow apply buttons
       const applyKpisBtn = document.getElementById('applyKpisBtn');
       const applyVisualsBtn = document.getElementById('applyVisualsBtn');
       if (applyKpisBtn) {
@@ -2849,11 +2767,9 @@
         if (e.target === exportModal) closeModal();
       });
 
-      // Window controls
       document.getElementById('minimizeWindowBtn').addEventListener('click', () => showToast('Power BI 背景设计工作站运行中'));
       document.getElementById('closeWindowBtn').addEventListener('click', () => showToast('请关闭浏览器标签页以离开设计器'));
 
-      // Export handlers
       document.getElementById('downloadPng1xBtn').addEventListener('click', () => exportPNG(1));
       document.getElementById('downloadPng2xBtn').addEventListener('click', () => exportPNG(2));
       document.getElementById('downloadSvgBtn').addEventListener('click', () => exportSVG(false));
@@ -2874,9 +2790,7 @@
       ctx.fillStyle = state.colors.canvasBg;
       ctx.fillRect(0, 0, W, H);
 
-      // Template Specific Background Elements
       if (state.layout === 'template-bauhaus-memphis') {
-        // Draw Memphis / Bauhaus colored top banner (参考图 8)
         const bannerHeight = 24 * scale;
         const bannerGradient = ctx.createLinearGradient(0, 0, W, 0);
         bannerGradient.addColorStop(0, '#EF4444');
@@ -2886,7 +2800,6 @@
         ctx.fillStyle = bannerGradient;
         ctx.fillRect(0, 0, W, bannerHeight);
       } else if (state.layout === 'template-diagonal-tech') {
-        // Top right diagonal accent cut (参考图 9)
         ctx.fillStyle = '#4f46e5';
         ctx.beginPath();
         ctx.moveTo(W - 80 * scale, 0);
@@ -2908,7 +2821,6 @@
         ctx.fillStyle = state.colors.sidebarBg;
         
         if (state.sidebar === 'floating') {
-          // Floating pill nav
           roundRect(ctx, spacing, spacing, sidebarWidth, H - spacing * 2, radius * 2);
           ctx.fill();
         } else {
